@@ -18,6 +18,11 @@ const allTraits = [
     new CorrectnessColoringTrait()
 ];
 
+const allLetterTraits = [
+    new LetterTrait(),
+    new CorrectnessColoringLetterTrait()
+];
+
 // -----------
 
 const displayTable = document.getElementById("display");
@@ -44,7 +49,7 @@ for (let i = 0; i < 6; i++) {
             traits: {}
         };
 
-        allTraits.forEach(t => t.onStart(gameState, cellData));
+        allTraits.forEach(t => t.onStartCell(gameState, cellData));
 
         rowData.push(cellData);
     }
@@ -53,6 +58,8 @@ for (let i = 0; i < 6; i++) {
     displayTable.appendChild(row);
     gameState.rowData.push(rowData);
 }
+
+allTraits.forEach(t => t.onStart(gameState));
 
 const letterTable = document.getElementById("letters");
 const alphabet = "abcdefghijklmnopqrstuvwxyz".split("");
@@ -63,15 +70,20 @@ const alphabet = "abcdefghijklmnopqrstuvwxyz".split("");
         cell.classList.add("letter");
         cell.appendChild(makeCenterText(alphabet[i].toUpperCase()));
 
-        gameState.letterData[alphabet[i]] = {
+        const letterData = {
             element: cell,
             letter: alphabet[i],
             traits: {}
         };
+        allLetterTraits.forEach(t => t.onStartCell(gameState, letterData));
+
+        gameState.letterData[alphabet[i]] = letterData;
         row.appendChild(cell);
     }
     letterTable.append(row);
 }
+
+allLetterTraits.forEach(t => t.onStart(gameState));
 
 // -----------
 
@@ -116,8 +128,11 @@ document.body.addEventListener("keydown", e => {
             const judge = judgeGuess(gameState.partial);
             gameState.judgeData.push(judge);
             for (let i = 0; i < 5; i++) {
-                allTraits.forEach(t => t.onReveal(gameState, gameState.rowData[gameState.turn][i], judge.cells[i]));
+                allTraits.forEach(t => t.onRevealCell(gameState, gameState.rowData[gameState.turn][i], judge.cells[i]));
             }
+            allTraits.forEach(t => t.onReveal(gameState, judge));
+            allLetterTraits.forEach(t => t.onReveal(gameState, judge));
+
             gameState.turn++;
             gameState.partial = "";
             if (gameState.turn >= 6 || judge.allCorrect) {
@@ -127,13 +142,14 @@ document.body.addEventListener("keydown", e => {
     } else if (key == "backspace") {
         if (gameState.partial.length > 0) {
             gameState.partial = gameState.partial.substring(0, gameState.partial.length - 1);
-            typedTrait.onType(gameState, gameState.rowData[gameState.turn][gameState.partial.length], "");
+            typedTrait.onTypeCell(gameState, gameState.rowData[gameState.turn][gameState.partial.length], "");
         }
     } else if (key.length == 1 && alphabet.includes(key)) {
         if (gameState.partial.length < 5) {
             gameState.partial += key;
-            typedTrait.onType(gameState, gameState.rowData[gameState.turn][gameState.partial.length - 1], key);
+            typedTrait.onTypeCell(gameState, gameState.rowData[gameState.turn][gameState.partial.length - 1], key);
+            allLetterTraits.forEach(t => t.onTypeCell(gameState, gameState.letterData[key]));
+            allLetterTraits.forEach(t => t.onType(gameState));
         }
     }
-    console.log(gameState.partial);
 });

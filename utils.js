@@ -4,7 +4,8 @@ const guessWords = ["aahed","aalii","aapas","aargh","aarti","abaca","abaci","aba
 const GUESS_TYPES = {
     GREEN: 0,
     YELLOW: 1,
-    GRAY: 2
+    GRAY: 2,
+    NONE: 3
 }
 
 const makeCenterText = text => {
