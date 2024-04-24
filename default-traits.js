@@ -47,10 +47,18 @@ class CorrectnessColoringTrait extends Trait {
     name = "correctness"
 
     onRevealCell(state, cell, judged) {
+        const popup = document.createElement("span");
+        popup.classList.add("center-text");
+        popup.innerText = "COMBO";
+
         if (judged.correctness == GUESS_TYPES.GREEN) {
             cell.element.classList.add("reveal-green");
+            popup.classList.add("color-green");
+            state.popups.addToRow(popup);
         } else if (judged.correctness == GUESS_TYPES.YELLOW) {
             cell.element.classList.add("reveal-yellow");
+            popup.classList.add("color-yellow");
+            state.popups.addToRow(popup);
         } else if (judged.correctness == GUESS_TYPES.GRAY) {
             cell.element.classList.add("reveal-gray");
         }
@@ -99,7 +107,7 @@ class CorrectnessColoringLetterTrait extends LetterTrait {
     }
 
     onReveal(state, judged) {
-        for (let i = 0; i < 5; i++) {
+        for (let i = 0; i < NUM_COLS; i++) {
             const cell = state.letterData[judged.cells[i].guess];
             if (cell.traits.correctness.correctness > judged.cells[i].correctness) {
                 cell.traits.correctness.correctness = judged.cells[i].correctness;

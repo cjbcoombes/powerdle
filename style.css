@@ -63,10 +63,22 @@ body, body * {
     background-color: green;
 }
 
+.color-green {
+    color: green;
+}
+
 .reveal-yellow {
     background-color: #bb9e00;
 }
 
+.color-yellow {
+    color: #bb9e00;
+}
+
 .reveal-gray {
     background-color: #192424;
+}
+
+.color-gray {
+    color: #192424;
 }

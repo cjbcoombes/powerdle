@@ -8,15 +8,16 @@ const gameState = {
     gameOver: false,
     letterData: {},
     popups: {
-        addToRow: evt => {
+        addToRow: (evt, time = 1000) => {
             if (gameState.popups.rows[gameState.turn].length == 0) {
-                gameState.popups.rowTimers[gameState.turn] = 1000;
+                gameState.popups.rowBoxes[gameState.turn].right.appendChild(evt);
             }
             gameState.popups.rows[gameState.turn].push(evt)
+            gameState.popups.rowTimers[gameState.turn].push(time);
         },
-        rows: [[], [], [], [], []],
+        rows: ROW_BASE.map(i => []),
         rowBoxes: [],
-        rowTimers: [0, 0, 0, 0, 0]
+        rowTimers: ROW_BASE.map(i => [])
     }
 };
 
@@ -50,7 +51,7 @@ for (let i = 0; i < 6; i++) {
     cellContainer.appendChild(leftBox);
 
     const rowData = [];
-    for (let j = 0; j < 5; j++) {
+    for (let j = 0; j < NUM_COLS; j++) {
         const cell = document.createElement("div");
         cell.id = "cell-"+i+"-"+j;
         cell.classList.add("cell");
@@ -122,12 +123,14 @@ const judgeGuess = guess => {
     guess = guess.split("");
     const ans = gameState.target.split("");
     const out = {
-        cells: [{}, {}, {}, {}, {}]
+        cells: []
     };
 
-    for (let i = 0; i < 5; i++) {
-        out.cells[i].guess = guess[i];
-        out.cells[i].ans = ans[i];
+    for (let i = 0; i < NUM_COLS; i++) {
+        out.cells.push({
+            guess: guess[i],
+            ans: ans[i]
+        });
         if (guess[i] == ans[i]) {
             out.cells[i].correctness = GUESS_TYPES.GREEN;
             guess[i] = "*";
@@ -135,7 +138,7 @@ const judgeGuess = guess => {
         }
     }
 
-    for (let i = 0; i < 5; i++) {
+    for (let i = 0; i < NUM_COLS; i++) {
         if (guess[i] == "*") continue;
         const idx = ans.indexOf(guess[i]);
         if (idx == -1) {
@@ -155,10 +158,10 @@ document.body.addEventListener("keydown", e => {
 
     const key = e.key.toLowerCase();
     if (key == "enter") {
-        if (gameState.partial.length == 5 && guessWords.includes(gameState.partial)) {
+        if (gameState.partial.length == NUM_COLS && guessWords.includes(gameState.partial)) {
             const judge = judgeGuess(gameState.partial);
             gameState.judgeData.push(judge);
-            for (let i = 0; i < 5; i++) {
+            for (let i = 0; i < NUM_COLS; i++) {
                 allTraits.forEach(t => t.onRevealCell(gameState, gameState.rowData[gameState.turn][i], judge.cells[i]));
             }
             allTraits.forEach(t => t.onReveal(gameState, judge));
@@ -176,7 +179,7 @@ document.body.addEventListener("keydown", e => {
             typedTrait.onTypeCell(gameState, gameState.rowData[gameState.turn][gameState.partial.length], "");
         }
     } else if (key.length == 1 && alphabet.includes(key)) {
-        if (gameState.partial.length < 5) {
+        if (gameState.partial.length < NUM_COLS) {
             gameState.partial += key;
             typedTrait.onTypeCell(gameState, gameState.rowData[gameState.turn][gameState.partial.length - 1], key);
             allLetterTraits.forEach(t => t.onTypeCell(gameState, gameState.letterData[key]));
@@ -185,3 +188,19 @@ document.body.addEventListener("keydown", e => {
     }
 });
 
+setInterval(() => {
+    for (let i = 0; i < NUM_ROWS; i++) {
+        if (gameState.popups.rowTimers[i].length <= 0) continue;
+        gameState.popups.rowTimers[i][0] -= 50;
+
+        if (gameState.popups.rowTimers[i][0] <= 0) {
+            gameState.popups.rowTimers[i].shift();
+            gameState.popups.rows[i].shift();
+
+            gameState.popups.rowBoxes[i].right.innerHTML = "";
+            if (gameState.popups.rows[i].length != 0) {
+                gameState.popups.rowBoxes[i].right.appendChild(gameState.popups.rows[i][0]);
+            }
+        }
+    }
+}, 50);

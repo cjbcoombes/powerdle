@@ -8,6 +8,13 @@ const GUESS_TYPES = {
     NONE: 3
 }
 
+const NUM_ROWS = 6;
+const NUM_COLS = 5;
+const ROW_BASE = [];
+for (let i = 0; i < NUM_ROWS; i++) {
+    ROW_BASE.push(i);
+}
+
 const makeCenterText = text => {
     const elem = document.createElement("span");
     elem.classList.add("center-text");
