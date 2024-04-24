@@ -8,7 +8,7 @@ const gameState = {
     gameOver: false,
     letterData: {},
     popups: {
-        addToRow: (evt, time = 1000) => {
+        addToRow: (evt, time = 2000) => {
             if (gameState.popups.rows[gameState.turn].length == 0) {
                 gameState.popups.rowBoxes[gameState.turn].right.appendChild(evt);
             }

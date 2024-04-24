@@ -45,20 +45,57 @@ class TypedTrait extends Trait {
 
 class CorrectnessColoringTrait extends Trait {
     name = "correctness"
+    greenComboPoints = [
+        0,
+        100,
+        400,
+        900,
+        1600,
+        2500
+    ]
+    yellowPoints = 50
 
-    onRevealCell(state, cell, judged) {
-        const popup = document.createElement("span");
-        popup.classList.add("center-text");
-        popup.innerText = "COMBO";
+    onReveal(state, judged) {
+        let comboSize = 0;
+        for (let i = 0; i < NUM_COLS; i++) {
+            if (judged.cells[i].correctness == GUESS_TYPES.GREEN) {
+                comboSize++;
+            } else if (comboSize != 0) {
+                const popup = makeFadingPopup(
+                    comboSize == 1 ? `GREEN +${this.greenComboPoints[comboSize]}` : 
+                    `COMBO x${comboSize} +${this.greenComboPoints[comboSize]}`
+                );
+                // TODO: actually increment the points
+                popup.classList.add("color-green");
+                state.popups.addToRow(popup);
+                comboSize = 0;
+            }
 
-        if (judged.correctness == GUESS_TYPES.GREEN) {
-            cell.element.classList.add("reveal-green");
+            if (judged.cells[i].correctness == GUESS_TYPES.YELLOW) {
+                const popup = makeFadingPopup(`YELLOW +${this.yellowPoints}`);
+                // TODO: actually increment the points
+                popup.classList.add("color-yellow");
+                state.popups.addToRow(popup);
+            }
+        }
+
+        if (comboSize != 0) {
+            const popup = makeFadingPopup(
+                comboSize == 1 ? `GREEN +${this.greenComboPoints[comboSize]}` : 
+                `COMBO x${comboSize} +${this.greenComboPoints[comboSize]}`
+            );
+            // TODO: actually increment the points
             popup.classList.add("color-green");
             state.popups.addToRow(popup);
+            comboSize = 0;
+        }
+    }
+
+    onRevealCell(state, cell, judged) {
+        if (judged.correctness == GUESS_TYPES.GREEN) {
+            cell.element.classList.add("reveal-green");
         } else if (judged.correctness == GUESS_TYPES.YELLOW) {
             cell.element.classList.add("reveal-yellow");
-            popup.classList.add("color-yellow");
-            state.popups.addToRow(popup);
         } else if (judged.correctness == GUESS_TYPES.GRAY) {
             cell.element.classList.add("reveal-gray");
         }
