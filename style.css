@@ -32,9 +32,17 @@ body, body * {
     width: 50px;
     height: 50px;
     margin: 5px;
-    padding: 0;
     background-color: black;
     border: 2px solid gray;
+    color: white;
+    font-size: 30px;
+}
+
+.row-popup-box {
+    display: inline-block;
+    width: 200px;
+    height: 50px;
+    margin: 5px;
     color: white;
     font-size: 30px;
 }

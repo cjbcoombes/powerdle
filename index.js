@@ -6,7 +6,18 @@ const gameState = {
     rowData: [],
     judgeData: [],
     gameOver: false,
-    letterData: {}
+    letterData: {},
+    popups: {
+        addToRow: evt => {
+            if (gameState.popups.rows[gameState.turn].length == 0) {
+                gameState.popups.rowTimers[gameState.turn] = 1000;
+            }
+            gameState.popups.rows[gameState.turn].push(evt)
+        },
+        rows: [[], [], [], [], []],
+        rowBoxes: [],
+        rowTimers: [0, 0, 0, 0, 0]
+    }
 };
 
 console.log(gameState);
@@ -34,6 +45,10 @@ for (let i = 0; i < 6; i++) {
     const cellContainer = document.createElement("td");
     cellContainer.classList.add("cell-container");
 
+    const leftBox = document.createElement("div");
+    leftBox.classList.add("row-popup-box");
+    cellContainer.appendChild(leftBox);
+
     const rowData = [];
     for (let j = 0; j < 5; j++) {
         const cell = document.createElement("div");
@@ -53,6 +68,11 @@ for (let i = 0; i < 6; i++) {
 
         rowData.push(cellData);
     }
+
+    const rightBox = document.createElement("div");
+    rightBox.classList.add("row-popup-box");
+    gameState.popups.rowBoxes.push({left: leftBox, right:rightBox});
+    cellContainer.appendChild(rightBox);
 
     row.appendChild(cellContainer);
     displayTable.appendChild(row);
@@ -164,3 +184,4 @@ document.body.addEventListener("keydown", e => {
         }
     }
 });
+
