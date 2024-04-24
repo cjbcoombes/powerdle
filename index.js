@@ -63,23 +63,34 @@ allTraits.forEach(t => t.onStart(gameState));
 
 const letterTable = document.getElementById("letters");
 const alphabet = "abcdefghijklmnopqrstuvwxyz".split("");
-{
+const alphabetRows = [
+    "qwertyuiop".split(""),
+    "asdfghjkl".split(""),
+    "zxcvbnm".split("")
+]
+for (let i = 0; i < alphabetRows.length; i++) {
     const row = document.createElement("tr");
-    for (let i = 0; i < alphabet.length; i++) {
-        const cell = document.createElement("td");
+    const cellContainer = document.createElement("td");
+    cellContainer.classList.add("cell-container");
+
+    for (let j = 0; j < alphabetRows[i].length; j++) {
+        const letter = alphabetRows[i][j];
+        const cell = document.createElement("div");
         cell.classList.add("letter");
-        cell.appendChild(makeCenterText(alphabet[i].toUpperCase()));
+        cell.appendChild(makeCenterText(letter.toUpperCase()));
 
         const letterData = {
             element: cell,
-            letter: alphabet[i],
+            letter: letter,
             traits: {}
         };
         allLetterTraits.forEach(t => t.onStartCell(gameState, letterData));
 
-        gameState.letterData[alphabet[i]] = letterData;
-        row.appendChild(cell);
+        gameState.letterData[letter] = letterData;
+        cellContainer.appendChild(cell);
     }
+    
+    row.appendChild(cellContainer);
     letterTable.append(row);
 }
 
