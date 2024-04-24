@@ -29,3 +29,11 @@ const makeFadingPopup = (text, classes = []) => {
     elem.innerText = text;
     return elem;
 }
+
+const makeOrdinal = num => {
+    if (num >= 1 && num <= 3) {
+        return ["1st", "2nd", "3rd"][num-1];
+    } else {
+        return num + "th";
+    }
+}

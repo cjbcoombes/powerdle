@@ -3,7 +3,7 @@ class Trait {
 
     onStart(state) {
         state.traits[this.name] = {};
-        return state.traits;
+        return state.traits[this.name];
     }
 
     onStartCell(state, cell) {
@@ -66,7 +66,7 @@ class CorrectnessColoringTrait extends Trait {
                     comboSize == 1 ? `GREEN +${this.greenComboPoints[comboSize]}` : 
                     `COMBO x${comboSize} +${this.greenComboPoints[comboSize]}`
                 );
-                // TODO: actually increment the points
+                state.traits.points.delta += this.greenComboPoints[comboSize];
                 popup.classList.add("color-green");
                 state.popups.addToRow(popup);
                 comboSize = 0;
@@ -74,7 +74,7 @@ class CorrectnessColoringTrait extends Trait {
 
             if (judged.cells[i].correctness == GUESS_TYPES.YELLOW) {
                 const popup = makeFadingPopup(`YELLOW +${this.yellowPoints}`);
-                // TODO: actually increment the points
+                state.traits.points.delta += this.yellowPoints;
                 popup.classList.add("color-yellow");
                 state.popups.addToRow(popup);
             }
@@ -85,7 +85,7 @@ class CorrectnessColoringTrait extends Trait {
                 comboSize == 1 ? `GREEN +${this.greenComboPoints[comboSize]}` : 
                 `COMBO x${comboSize} +${this.greenComboPoints[comboSize]}`
             );
-            // TODO: actually increment the points
+            state.traits.points.delta += this.greenComboPoints[comboSize];
             popup.classList.add("color-green");
             state.popups.addToRow(popup);
             comboSize = 0;
@@ -106,6 +106,65 @@ class CorrectnessColoringTrait extends Trait {
     onStartCell(state, cell) {
         const storage = super.onStartCell(state, cell);
         storage.correctness = GUESS_TYPES.NONE;
+    }
+}
+
+class StandardPointsTrait extends Trait {
+    name = "points"
+    moveBonusPoints = [
+        15000,
+        10000,
+        7000,
+        3500,
+        1000,
+        500
+    ]
+
+    onStart(state) {
+        const storage = super.onStart(state);
+        storage.total = 0;
+        storage.delta = 0;
+        
+        const box = document.createElement("span");
+        box.classList.add("center-text");
+        const word = document.createElement("span");
+        word.innerText = "Total: ";
+        box.appendChild(word);
+        const value = document.createElement("span");
+        value.innerText = "0";
+        box.appendChild(value);
+
+        storage.element = value;
+        state.popups.infoBoxes.right.appendChild(box);
+    }
+
+    onReveal(state, judged) {
+        if (judged.allCorrect) {
+            const popup = makeFadingPopup(`${makeOrdinal(state.turn + 1)} guess +${this.moveBonusPoints[state.turn]}`);
+            state.traits.points.delta += this.moveBonusPoints[state.turn];
+            popup.classList.add("color-green");
+            state.popups.addToRow(popup);
+        }
+
+        const popup = makeCenterText(`+${state.traits.points.delta}`);
+        popup.classList.add("fade-in");
+        state.popups.addToRow(popup, Infinity);
+
+        let base = state.traits.points.total;
+        state.traits.points.total += state.traits.points.delta;
+        state.traits.points.delta = 0;
+
+        let diff = Math.max(1, Math.floor((state.traits.points.total - base) / 100));
+        let intId = setInterval(() => {
+            if (base < state.traits.points.total) {
+                base += diff;
+            }
+            if (base >= state.traits.points.total) {
+                base = state.traits.points.total;
+                clearInterval(intId);
+            }
+            state.traits.points.element.innerText = base.toString();
+        }, 10);
     }
 }
 

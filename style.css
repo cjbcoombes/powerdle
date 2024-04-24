@@ -29,7 +29,7 @@ body, body * {
     /* border: 2px solid white; */
 }
 
-.cell-container.display {
+.display {
     width: calc(min(320px, 70vw) - 5px);
 }
 
@@ -127,8 +127,19 @@ body, body * {
     100% {opacity: 0%;}
 }
 
+@keyframes fade-in-anim {
+    0% {opacity: 0%;}
+    100% {opacity: 100%;}
+}
+
 .fade-in-out {
     animation-name: fade-in-out-anim;
+    animation-duration: 2s;
+    animation-fill-mode: both;
+}
+
+.fade-in {
+    animation-name: fade-in-anim;
     animation-duration: 2s;
     animation-fill-mode: both;
 }

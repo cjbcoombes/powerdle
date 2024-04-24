@@ -19,7 +19,8 @@ const gameState = {
         },
         rows: ROW_BASE.map(i => []),
         rowBoxes: [],
-        rowTimers: ROW_BASE.map(i => [])
+        rowTimers: ROW_BASE.map(i => []),
+        infoBoxes: {}
     }
 };
 
@@ -29,7 +30,9 @@ const typedTrait = new TypedTrait();
 const allTraits = [
     new Trait(),
     typedTrait,
-    new CorrectnessColoringTrait()
+    new CorrectnessColoringTrait(),
+
+    new StandardPointsTrait() // Important that this is last in the list
 ];
 
 const allLetterTraits = [
@@ -41,32 +44,12 @@ const allLetterTraits = [
 
 const displayTable = document.getElementById("display");
 
-for (let i = 0; i < 6; i++) {
+for (let i = 0; i < NUM_ROWS + 1; i++) {
     const row = document.createElement("tr");
     row.id = "row-" + i;
 
     const cellContainer = document.createElement("td");
     cellContainer.classList.add("cell-container", "display");
-
-    const rowData = [];
-    for (let j = 0; j < NUM_COLS; j++) {
-        const cell = document.createElement("div");
-        cell.id = "cell-"+i+"-"+j;
-        cell.classList.add("cell");
-
-        cellContainer.appendChild(cell);
-
-        const cellData = {
-            row: i,
-            col: j,
-            element: cell,
-            traits: {}
-        };
-
-        allTraits.forEach(t => t.onStartCell(gameState, cellData));
-
-        rowData.push(cellData);
-    }
 
     const leftContainer = document.createElement("td");
     leftContainer.classList.add("row-popup-box-container", "left");
@@ -81,13 +64,38 @@ for (let i = 0; i < 6; i++) {
     rightBox.classList.add("row-popup-box");
     rightContainer.appendChild(rightBox);
 
-    gameState.popups.rowBoxes.push({left: leftBox, right:rightBox});
-    
+    const rowData = [];
+    if (i != NUM_ROWS) {
+        for (let j = 0; j < NUM_COLS; j++) {
+            const cell = document.createElement("div");
+            cell.id = "cell-"+i+"-"+j;
+            cell.classList.add("cell");
+
+            cellContainer.appendChild(cell);
+
+            const cellData = {
+                row: i,
+                col: j,
+                element: cell,
+                traits: {}
+            };
+
+            allTraits.forEach(t => t.onStartCell(gameState, cellData));
+
+            rowData.push(cellData);
+        }
+        gameState.rowData.push(rowData);
+        gameState.popups.rowBoxes.push({left: leftBox, right:rightBox});
+    } else {
+        gameState.popups.infoBoxes.left = leftBox;
+        gameState.popups.infoBoxes.right = rightBox;
+        gameState.popups.infoBoxes.center = cellContainer;
+    }
+
     row.appendChild(leftContainer);
     row.appendChild(cellContainer);
     row.appendChild(rightContainer);
     displayTable.appendChild(row);
-    gameState.rowData.push(rowData);
 }
 
 allTraits.forEach(t => t.onStart(gameState));
@@ -196,6 +204,7 @@ const keyEvent = key => {
 
             gameState.turn++;
             gameState.partial = "";
+            
             if (gameState.turn >= 6 || judge.allCorrect) {
                 gameState.gameOver = true;
             }
