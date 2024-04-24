@@ -2,7 +2,8 @@ class Trait {
     name = "default"
 
     onStart(state) {
-
+        state.traits[this.name] = {};
+        return state.traits;
     }
 
     onStartCell(state, cell) {
@@ -122,7 +123,8 @@ class LetterTrait {
     }
 
     onStart(state) {
-
+        state.lettertraits[this.name] = {};
+        return state.lettertraits[this.name];
     }
 
     onStartCell(state, cell) {

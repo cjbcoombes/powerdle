@@ -7,6 +7,8 @@ const gameState = {
     judgeData: [],
     gameOver: false,
     letterData: {},
+    traits: {},
+    lettertraits: {},
     popups: {
         addToRow: (evt, time = 2000) => {
             if (gameState.popups.rows[gameState.turn].length == 0) {
@@ -44,11 +46,7 @@ for (let i = 0; i < 6; i++) {
     row.id = "row-" + i;
 
     const cellContainer = document.createElement("td");
-    cellContainer.classList.add("cell-container");
-
-    const leftBox = document.createElement("div");
-    leftBox.classList.add("row-popup-box");
-    cellContainer.appendChild(leftBox);
+    cellContainer.classList.add("cell-container", "display");
 
     const rowData = [];
     for (let j = 0; j < NUM_COLS; j++) {
@@ -70,12 +68,24 @@ for (let i = 0; i < 6; i++) {
         rowData.push(cellData);
     }
 
+    const leftContainer = document.createElement("td");
+    leftContainer.classList.add("row-popup-box-container", "left");
+    const leftBox = document.createElement("div");
+    leftBox.classList.add("row-popup-box");
+    leftContainer.appendChild(leftBox);
+    
+    
+    const rightContainer = document.createElement("td");
+    rightContainer.classList.add("row-popup-box-container", "right");
     const rightBox = document.createElement("div");
     rightBox.classList.add("row-popup-box");
-    gameState.popups.rowBoxes.push({left: leftBox, right:rightBox});
-    cellContainer.appendChild(rightBox);
+    rightContainer.appendChild(rightBox);
 
+    gameState.popups.rowBoxes.push({left: leftBox, right:rightBox});
+    
+    row.appendChild(leftContainer);
     row.appendChild(cellContainer);
+    row.appendChild(rightContainer);
     displayTable.appendChild(row);
     gameState.rowData.push(rowData);
 }
@@ -94,11 +104,20 @@ for (let i = 0; i < alphabetRows.length; i++) {
     const cellContainer = document.createElement("td");
     cellContainer.classList.add("cell-container");
 
+    if (i == 2) {
+        const cell = document.createElement("div");
+        cell.classList.add("letter", "wide");
+        cell.appendChild(makeCenterText("ENTER"));
+        cell.addEventListener("click", e => keyEvent("Enter"));
+        cellContainer.appendChild(cell);
+    }
+
     for (let j = 0; j < alphabetRows[i].length; j++) {
         const letter = alphabetRows[i][j];
         const cell = document.createElement("div");
         cell.classList.add("letter");
         cell.appendChild(makeCenterText(letter.toUpperCase()));
+        cell.addEventListener("click", e => keyEvent(letter));
 
         const letterData = {
             element: cell,
@@ -108,6 +127,14 @@ for (let i = 0; i < alphabetRows.length; i++) {
         allLetterTraits.forEach(t => t.onStartCell(gameState, letterData));
 
         gameState.letterData[letter] = letterData;
+        cellContainer.appendChild(cell);
+    }
+
+    if (i == 2) {
+        const cell = document.createElement("div");
+        cell.classList.add("letter", "wide");
+        cell.appendChild(makeCenterText("DEL"));
+        cell.addEventListener("click", e => keyEvent("Backspace"));
         cellContainer.appendChild(cell);
     }
     
@@ -153,10 +180,10 @@ const judgeGuess = guess => {
     return out;
 };
 
-document.body.addEventListener("keydown", e => {
+const keyEvent = key => {
     if (gameState.gameOver) return;
 
-    const key = e.key.toLowerCase();
+    key = key.toLowerCase();
     if (key == "enter") {
         if (gameState.partial.length == NUM_COLS && guessWords.includes(gameState.partial)) {
             const judge = judgeGuess(gameState.partial);
@@ -186,7 +213,9 @@ document.body.addEventListener("keydown", e => {
             allLetterTraits.forEach(t => t.onType(gameState));
         }
     }
-});
+}
+
+document.body.addEventListener("keydown", e => keyEvent(e.key));
 
 setInterval(() => {
     for (let i = 0; i < NUM_ROWS; i++) {

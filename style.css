@@ -12,6 +12,7 @@ body, body * {
 }
 
 #display, #letters {
+    table-layout: fixed;
     width: 100%;
 }
 
@@ -25,38 +26,74 @@ body, body * {
 
 .cell-container {
     text-align: center;
+    /* border: 2px solid white; */
+}
+
+.cell-container.display {
+    width: calc(min(320px, 70vw) - 5px);
 }
 
 .cell {
     display: inline-block;
-    width: 50px;
-    height: 50px;
-    margin: 5px;
+    width: min(50px, 10vw);
+    height: min(50px, 10vw);
+    margin: 5px min(5px, 1vw);
     background-color: black;
     border: 2px solid gray;
     color: white;
-    font-size: 30px;
+    font-size: min(30px, 6vw);
+}
+
+.row-popup-box-container {
+    /* border: 2px solid white; */
+    width: calc(50vw - min(160px, 35vw));
+}
+
+@media (max-width: 500px) {
+    .row-popup-box-container.left {
+        width: 0;
+    }
+    .row-popup-box-container.right {
+        width: calc(100vw - min(320px, 70vw));
+    }
 }
 
 .row-popup-box {
     display: inline-block;
-    width: 200px;
-    height: 50px;
-    margin: 5px;
+    height: min(50px, 10vw);
+    /* width: 100%; */
+    margin: 5px 0;
     color: white;
-    font-size: 25px;
+    font-size: min(25px, 4vw);
+    /* border: 2px solid white; */
 }
+
+/* .row-popup-box.left {
+    width: calc(50vw - max(300px, calc(0.6 * 70vw)));
+}
+
+.row-popup-box.right {
+    width: calc(50vw - 0.6 * 70vw);
+} */
 
 .letter {
     display: inline-block;
-    width: 40px;
+    width: min(50px, 7%);
     height: 60px;
-    margin: 5px;
+    margin: 5px min(5px, 1%);
     padding: 0;
     background-color: black;
     color: white;
     border: 2px solid gray;
     font-size: 20px;
+}
+
+.letter.wide {
+    width: min(100px, 14%);
+}
+
+.letter:hover {
+    cursor: pointer;
 }
 
 .reveal-green {
