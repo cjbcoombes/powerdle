@@ -30,7 +30,7 @@ body, body * {
 }
 
 .display {
-    width: calc(min(320px, 70vw) - 5px);
+    width: min(320px, 70vw);
 }
 
 .cell {
@@ -46,7 +46,7 @@ body, body * {
 
 .row-popup-box-container {
     /* border: 2px solid white; */
-    width: calc(50vw - min(160px, 35vw));
+    width: calc(49vw - min(160px, 35vw));
 }
 
 @media (max-width: 500px) {

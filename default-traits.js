@@ -18,6 +18,18 @@ class Trait {
     onRevealCell(state, cell, judged) {
         
     }
+
+    onShare(state) {
+
+    }
+
+    onShareCell(state, cell) {
+
+    }
+
+    onShareRow(state, row) {
+
+    }
 }
 
 class TypedTrait extends Trait {
@@ -107,10 +119,27 @@ class CorrectnessColoringTrait extends Trait {
         const storage = super.onStartCell(state, cell);
         storage.correctness = GUESS_TYPES.NONE;
     }
+
+    onShareCell(state, cell) {
+        // 🟥 🟧 🟨 🟩 🟦 🟪 🟫 ⬛ ⬜
+        if (cell.row < state.judgeData.length) {
+            const correctness = state.judgeData[cell.row].cells[cell.col].correctness;
+            if (correctness == GUESS_TYPES.GREEN) {
+                cell.shareText = "🟩";
+            } else if (correctness == GUESS_TYPES.YELLOW) {
+                cell.shareText = "🟨";
+            } else if (correctness == GUESS_TYPES.GRAY) {
+                cell.shareText = "🟫";
+            } 
+        } else {
+            cell.shareText = "⬛";
+        }
+    }
 }
 
 class StandardPointsTrait extends Trait {
     name = "points"
+    intId = -1
     moveBonusPoints = [
         15000,
         10000,
@@ -124,6 +153,7 @@ class StandardPointsTrait extends Trait {
         const storage = super.onStart(state);
         storage.total = 0;
         storage.delta = 0;
+        storage.rowDeltas = [];
         
         const box = document.createElement("span");
         box.classList.add("center-text");
@@ -140,7 +170,7 @@ class StandardPointsTrait extends Trait {
 
     onReveal(state, judged) {
         if (judged.allCorrect) {
-            const popup = makeFadingPopup(`${makeOrdinal(state.turn + 1)} guess +${this.moveBonusPoints[state.turn]}`);
+            const popup = makeFadingPopup(`${makeOrdinal(state.turn + 1)} Guess +${this.moveBonusPoints[state.turn]}`);
             state.traits.points.delta += this.moveBonusPoints[state.turn];
             popup.classList.add("color-green");
             state.popups.addToRow(popup);
@@ -152,19 +182,27 @@ class StandardPointsTrait extends Trait {
 
         let base = state.traits.points.total;
         state.traits.points.total += state.traits.points.delta;
+        state.traits.points.rowDeltas.push(state.traits.points.delta);
         state.traits.points.delta = 0;
 
         let diff = Math.max(1, Math.floor((state.traits.points.total - base) / 100));
-        let intId = setInterval(() => {
+        clearInterval(this.intId);
+        this.intId = setInterval(() => {
             if (base < state.traits.points.total) {
                 base += diff;
             }
             if (base >= state.traits.points.total) {
                 base = state.traits.points.total;
-                clearInterval(intId);
+                clearInterval(this.intId);
             }
             state.traits.points.element.innerText = base.toString();
         }, 10);
+    }
+
+    onShareRow(state, row) {
+        if (row < state.traits.points.rowDeltas.length) {
+            state.shareText += "+" + state.traits.points.rowDeltas[row];
+        }
     }
 }
 

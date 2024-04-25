@@ -6,6 +6,7 @@ const gameState = {
     rowData: [],
     judgeData: [],
     gameOver: false,
+    won: false,
     letterData: {},
     traits: {},
     lettertraits: {},
@@ -31,6 +32,8 @@ const allTraits = [
     new Trait(),
     typedTrait,
     new CorrectnessColoringTrait(),
+    // new ReusedGrayTrait(),
+    // new NewGreenTrait(),
 
     new StandardPointsTrait() // Important that this is last in the list
 ];
@@ -77,6 +80,7 @@ for (let i = 0; i < NUM_ROWS + 1; i++) {
                 row: i,
                 col: j,
                 element: cell,
+                shareText: "*",
                 traits: {}
             };
 
@@ -204,9 +208,10 @@ const keyEvent = key => {
 
             gameState.turn++;
             gameState.partial = "";
-            
-            if (gameState.turn >= 6 || judge.allCorrect) {
+
+            if (gameState.turn >= NUM_ROWS || judge.allCorrect) {
                 gameState.gameOver = true;
+                gameState.won = judge.allCorrect;
             }
         }
     } else if (key == "backspace") {
@@ -221,6 +226,23 @@ const keyEvent = key => {
             allLetterTraits.forEach(t => t.onTypeCell(gameState, gameState.letterData[key]));
             allLetterTraits.forEach(t => t.onType(gameState));
         }
+    }
+
+    if (gameState.gameOver) {
+        gameState.shareText = `Powerdle ${gameState.won ? gameState.turn : 'X'}/6\n\n`;
+        for (let i = 0; i < NUM_ROWS; i++) {
+            for (let j = 0; j < NUM_COLS; j++) {
+                allTraits.forEach(t => t.onShareCell(gameState, gameState.rowData[i][j]));
+                gameState.shareText += gameState.rowData[i][j].shareText;
+            }
+            gameState.shareText += ' ';
+            allTraits.forEach(t => t.onShareRow(gameState, i));
+            gameState.shareText += '\n';
+        }
+        gameState.shareText += '\n';
+        allTraits.forEach(t => t.onShare(gameState));
+
+        console.log(gameState.shareText);
     }
 }
 
