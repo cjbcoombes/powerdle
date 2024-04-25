@@ -32,8 +32,8 @@ const allTraits = [
     new Trait(),
     typedTrait,
     new CorrectnessColoringTrait(),
-    // new ReusedGrayTrait(),
-    // new NewGreenTrait(),
+    new ReusedGrayTrait(),
+    new NewGreenTrait(),
 
     new StandardPointsTrait() // Important that this is last in the list
 ];
