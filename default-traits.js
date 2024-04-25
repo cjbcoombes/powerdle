@@ -11,7 +11,11 @@ class Trait {
         return cell.traits[this.name];
     }
 
-    onReveal(state, judged) {
+    onPreReveal(state, row, judged) {
+
+    }
+
+    onReveal(state, row, judged) {
 
     }
 
@@ -68,9 +72,11 @@ class CorrectnessColoringTrait extends Trait {
     ]
     yellowPoints = 50
 
-    onReveal(state, judged) {
+    onReveal(state, row, judged) {
         let comboSize = 0;
         for (let i = 0; i < NUM_COLS; i++) {
+            if (row[i].traits.correctness.ignored) continue;
+
             if (judged.cells[i].correctness == GUESS_TYPES.GREEN) {
                 comboSize++;
             } else if (comboSize != 0) {
@@ -105,12 +111,14 @@ class CorrectnessColoringTrait extends Trait {
     }
 
     onRevealCell(state, cell, judged) {
-        if (judged.correctness == GUESS_TYPES.GREEN) {
-            cell.element.classList.add("reveal-green");
-        } else if (judged.correctness == GUESS_TYPES.YELLOW) {
-            cell.element.classList.add("reveal-yellow");
-        } else if (judged.correctness == GUESS_TYPES.GRAY) {
-            cell.element.classList.add("reveal-gray");
+        if (!cell.traits.correctness.ignored) {
+            if (judged.correctness == GUESS_TYPES.GREEN) {
+                cell.element.classList.add("reveal-green");
+            } else if (judged.correctness == GUESS_TYPES.YELLOW) {
+                cell.element.classList.add("reveal-yellow");
+            } else if (judged.correctness == GUESS_TYPES.GRAY) {
+                cell.element.classList.add("reveal-gray");
+            }
         }
         cell.traits.correctness.correctness = judged.correctness;
     }
@@ -118,6 +126,7 @@ class CorrectnessColoringTrait extends Trait {
     onStartCell(state, cell) {
         const storage = super.onStartCell(state, cell);
         storage.correctness = GUESS_TYPES.NONE;
+        storage.ignored = false;
     }
 
     onShareCell(state, cell) {
@@ -168,7 +177,7 @@ class StandardPointsTrait extends Trait {
         state.popups.infoBoxes.right.appendChild(box);
     }
 
-    onReveal(state, judged) {
+    onReveal(state, row, judged) {
         if (judged.allCorrect) {
             const popup = makeFadingPopup(`${makeOrdinal(state.turn + 1)} Guess +${this.moveBonusPoints[state.turn]}`);
             state.traits.points.delta += this.moveBonusPoints[state.turn];
@@ -200,9 +209,13 @@ class StandardPointsTrait extends Trait {
     }
 
     onShareRow(state, row) {
-        if (row < state.traits.points.rowDeltas.length) {
-            state.shareText += "+" + state.traits.points.rowDeltas[row];
+        if (row < state.traits.points.rowDeltas.length && state.traits.points.rowDeltas[row] != 0) {
+            state.shareText += "+" + state.traits.points.rowDeltas[row] + " ";
         }
+    }
+
+    onShare(state) {
+        state.shareText += "Total Points: +" + state.traits.points.total + "\n\n";
     }
 }
 
@@ -229,7 +242,7 @@ class LetterTrait {
         return cell.traits[this.name];
     }
 
-    onReveal(state, judged) {
+    onReveal(state, row, judged) {
 
     }
 }
@@ -240,22 +253,26 @@ class CorrectnessColoringLetterTrait extends LetterTrait {
     onStartCell(state, cell) {
         const storage = super.onStartCell(state, cell);
         storage.correctness = GUESS_TYPES.NONE;
+        storage.ignored = false;
     }
 
-    onReveal(state, judged) {
+    onReveal(state, row, judged) {
         for (let i = 0; i < NUM_COLS; i++) {
             const cell = state.letterData[judged.cells[i].guess];
-            if (cell.traits.correctness.correctness > judged.cells[i].correctness) {
-                cell.traits.correctness.correctness = judged.cells[i].correctness;
-                cell.element.classList.remove("reveal-green");
-                cell.element.classList.remove("reveal-yellow");
-                cell.element.classList.remove("reveal-gray");
-                if (judged.cells[i].correctness == GUESS_TYPES.GREEN) {
-                    cell.element.classList.add("reveal-green");
-                } else if (judged.cells[i].correctness == GUESS_TYPES.YELLOW) {
-                    cell.element.classList.add("reveal-yellow");
-                } else if (judged.cells[i].correctness == GUESS_TYPES.GRAY) {
-                    cell.element.classList.add("reveal-gray");
+            
+            if (!cell.traits.correctness.ignored) {
+                if (cell.traits.correctness.correctness > judged.cells[i].correctness) {
+                    cell.traits.correctness.correctness = judged.cells[i].correctness;
+                    cell.element.classList.remove("reveal-green");
+                    cell.element.classList.remove("reveal-yellow");
+                    cell.element.classList.remove("reveal-gray");
+                    if (judged.cells[i].correctness == GUESS_TYPES.GREEN) {
+                        cell.element.classList.add("reveal-green");
+                    } else if (judged.cells[i].correctness == GUESS_TYPES.YELLOW) {
+                        cell.element.classList.add("reveal-yellow");
+                    } else if (judged.cells[i].correctness == GUESS_TYPES.GRAY) {
+                        cell.element.classList.add("reveal-gray");
+                    }
                 }
             }
         }

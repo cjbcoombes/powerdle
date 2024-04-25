@@ -8,6 +8,8 @@ const GUESS_TYPES = {
     NONE: 3
 }
 
+const ALPHABET = "abcdefghijklmnopqrstuvwxyz".split("");
+
 const NUM_ROWS = 6;
 const NUM_COLS = 5;
 const ROW_BASE = [];

@@ -3,6 +3,15 @@ const gameState = {
     turn: 0,
     partial: "",
     target: answerWords[Math.floor(Math.random() * answerWords.length)],
+    randAt: (k, m = 2**31) => {
+        let seed = gameState.seed - k;
+        k = k % 100 + 15;
+        while (k > 0) {
+            seed = (1103515245 * seed + 12345) % (2**31);
+            k--;
+        }
+        return seed % m;
+    },
     rowData: [],
     judgeData: [],
     gameOver: false,
@@ -25,6 +34,8 @@ const gameState = {
     }
 };
 
+gameState.seed = gameState.target.split("").map(l => l.charCodeAt(0)).reduce((acc, elem) => acc * 3217 + elem) % 10293821;
+
 console.log(gameState);
 
 const typedTrait = new TypedTrait();
@@ -34,13 +45,15 @@ const allTraits = [
     new CorrectnessColoringTrait(),
     new ReusedGrayTrait(),
     new NewGreenTrait(),
+    new BannedLetterTrait(),
 
     new StandardPointsTrait() // Important that this is last in the list
 ];
 
 const allLetterTraits = [
     new LetterTrait(),
-    new CorrectnessColoringLetterTrait()
+    new CorrectnessColoringLetterTrait(),
+    new BannedLetterLetterTrait()
 ];
 
 // -----------
@@ -105,7 +118,6 @@ for (let i = 0; i < NUM_ROWS + 1; i++) {
 allTraits.forEach(t => t.onStart(gameState));
 
 const letterTable = document.getElementById("letters");
-const alphabet = "abcdefghijklmnopqrstuvwxyz".split("");
 const alphabetRows = [
     "qwertyuiop".split(""),
     "asdfghjkl".split(""),
@@ -200,11 +212,12 @@ const keyEvent = key => {
         if (gameState.partial.length == NUM_COLS && guessWords.includes(gameState.partial)) {
             const judge = judgeGuess(gameState.partial);
             gameState.judgeData.push(judge);
+            allTraits.forEach(t => t.onPreReveal(gameState, gameState.rowData[gameState.turn], judge));
             for (let i = 0; i < NUM_COLS; i++) {
                 allTraits.forEach(t => t.onRevealCell(gameState, gameState.rowData[gameState.turn][i], judge.cells[i]));
             }
-            allTraits.forEach(t => t.onReveal(gameState, judge));
-            allLetterTraits.forEach(t => t.onReveal(gameState, judge));
+            allTraits.forEach(t => t.onReveal(gameState, gameState.rowData[gameState.turn], judge));
+            allLetterTraits.forEach(t => t.onReveal(gameState, gameState.rowData[gameState.turn], judge));
 
             gameState.turn++;
             gameState.partial = "";
@@ -219,7 +232,7 @@ const keyEvent = key => {
             gameState.partial = gameState.partial.substring(0, gameState.partial.length - 1);
             typedTrait.onTypeCell(gameState, gameState.rowData[gameState.turn][gameState.partial.length], "");
         }
-    } else if (key.length == 1 && alphabet.includes(key)) {
+    } else if (key.length == 1 && ALPHABET.includes(key)) {
         if (gameState.partial.length < NUM_COLS) {
             gameState.partial += key;
             typedTrait.onTypeCell(gameState, gameState.rowData[gameState.turn][gameState.partial.length - 1], key);

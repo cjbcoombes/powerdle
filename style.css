@@ -120,6 +120,10 @@ body, body * {
     color: #192424;
 }
 
+.reveal-red {
+    background-color: red;
+}
+
 @keyframes fade-in-out-anim {
     0% {opacity: 0%;}
     35% {opacity: 100%;}
