@@ -22,7 +22,7 @@ const makeCenterText = text => {
     elem.classList.add("center-text");
     elem.innerText = text;
     return elem;
-}
+};
 
 const makeFadingPopup = (text, classes = []) => {
     const elem = document.createElement("span");
@@ -30,7 +30,7 @@ const makeFadingPopup = (text, classes = []) => {
     classes.forEach(c => elem.classList.add(c));
     elem.innerText = text;
     return elem;
-}
+};
 
 const makeOrdinal = num => {
     if (num >= 1 && num <= 3) {
@@ -38,4 +38,6 @@ const makeOrdinal = num => {
     } else {
         return num + "th";
     }
-}
+};
+
+const signNum = num => (num > 0 ? "+" : "") + num;

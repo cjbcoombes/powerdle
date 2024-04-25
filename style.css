@@ -37,7 +37,7 @@ body, body * {
     display: inline-block;
     width: min(50px, 10vw);
     height: min(50px, 10vw);
-    margin: 5px min(5px, 1vw);
+    margin: min(5px, 1vw);
     background-color: black;
     border: 2px solid gray;
     color: white;
@@ -61,8 +61,6 @@ body, body * {
 .row-popup-box {
     display: inline-block;
     height: min(50px, 10vw);
-    /* width: 100%; */
-    margin: 5px 0;
     color: white;
     font-size: min(25px, 4vw);
     /* border: 2px solid white; */
@@ -122,6 +120,10 @@ body, body * {
 
 .reveal-red {
     background-color: red;
+}
+
+.color-red {
+    color: red;
 }
 
 @keyframes fade-in-out-anim {

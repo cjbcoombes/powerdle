@@ -3,6 +3,9 @@ const gameState = {
     turn: 0,
     partial: "",
     target: answerWords[Math.floor(Math.random() * answerWords.length)],
+    gameOver: false,
+    won: false,
+
     randAt: (k, m = 2**31) => {
         let seed = gameState.seed - k;
         k = k % 100 + 15;
@@ -12,13 +15,12 @@ const gameState = {
         }
         return seed % m;
     },
+
     rowData: [],
-    judgeData: [],
-    gameOver: false,
-    won: false,
     letterData: {},
+    
     traits: {},
-    lettertraits: {},
+    
     popups: {
         addToRow: (evt, time = 2000) => {
             if (gameState.popups.rows[gameState.turn].length == 0) {
@@ -94,6 +96,13 @@ for (let i = 0; i < NUM_ROWS + 1; i++) {
                 col: j,
                 element: cell,
                 shareText: "*",
+                judge: {
+                    judged: false,
+                    hidden: false,
+                    guess: "",
+                    ans: "",
+                    correctness: GUESS_TYPES.NONE
+                },
                 traits: {}
             };
 
@@ -209,22 +218,35 @@ const keyEvent = key => {
 
     key = key.toLowerCase();
     if (key == "enter") {
-        if (gameState.partial.length == NUM_COLS && guessWords.includes(gameState.partial)) {
-            const judge = judgeGuess(gameState.partial);
-            gameState.judgeData.push(judge);
-            allTraits.forEach(t => t.onPreReveal(gameState, gameState.rowData[gameState.turn], judge));
-            for (let i = 0; i < NUM_COLS; i++) {
-                allTraits.forEach(t => t.onRevealCell(gameState, gameState.rowData[gameState.turn][i], judge.cells[i]));
-            }
-            allTraits.forEach(t => t.onReveal(gameState, gameState.rowData[gameState.turn], judge));
-            allLetterTraits.forEach(t => t.onReveal(gameState, gameState.rowData[gameState.turn], judge));
+        if (gameState.partial.length == NUM_COLS) {
+            if (guessWords.includes(gameState.partial)) {
+                const judge = judgeGuess(gameState.partial);
+                
+                for (let i = 0; i < NUM_COLS; i++) {
+                    gameState.rowData[gameState.turn][i].judge.guess = judge.cells[i].guess;
+                    gameState.rowData[gameState.turn][i].judge.ans = judge.cells[i].ans;
+                    gameState.rowData[gameState.turn][i].judge.correctness = judge.cells[i].correctness;
+                    gameState.rowData[gameState.turn][i].judge.judged = true;
+                }
 
-            gameState.turn++;
-            gameState.partial = "";
+                allTraits.forEach(t => t.onPreReveal(gameState, gameState.rowData[gameState.turn], judge));
+                for (let i = 0; i < NUM_COLS; i++) {
+                    allTraits.forEach(t => t.onRevealCell(gameState, gameState.rowData[gameState.turn][i], judge.cells[i]));
+                }
+                allTraits.forEach(t => t.onReveal(gameState, gameState.rowData[gameState.turn], judge));
+                allLetterTraits.forEach(t => t.onReveal(gameState, gameState.rowData[gameState.turn], judge));
 
-            if (gameState.turn >= NUM_ROWS || judge.allCorrect) {
-                gameState.gameOver = true;
-                gameState.won = judge.allCorrect;
+                gameState.turn++;
+                gameState.partial = "";
+
+                if (gameState.turn >= NUM_ROWS || judge.allCorrect) {
+                    gameState.gameOver = true;
+                    gameState.won = judge.allCorrect;
+                }
+            } else {
+                const popup = makeFadingPopup("INVALID");
+                popup.classList.add("color-red");
+                gameState.popups.addToRow(popup);
             }
         }
     } else if (key == "backspace") {

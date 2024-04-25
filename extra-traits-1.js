@@ -3,22 +3,22 @@ class ReusedGrayTrait extends Trait {
     grays = []
 
     onStartCell(state, cell) {
-        const storage = super.onStartCell(state, cell);
-        storage.reused = false;
+        const stg = super.onStartCell(state, cell);
+        stg.reused = false;
     }
 
-    onRevealCell(state, cell, judged) {
-        if (judged.correctness == GUESS_TYPES.GRAY) {
-            if (this.grays.includes(judged.guess)) {
-                cell.traits.reusedgray.reused = true;
+    onRevealCell(state, cell, judge) {
+        if (cell.judge.correctness == GUESS_TYPES.GRAY) {
+            if (this.grays.includes(cell.judge.guess)) {
+                this.stg(cell).reused = true;
             } else {
-                this.grays.push(judged.guess);
+                this.grays.push(cell.judge.guess);
             }
         }
     }
 
     onShareCell(state, cell) {
-        if (cell.traits.reusedgray.reused) {
+        if (this.stg(cell).reused) {
             cell.shareText = "💀";
         }
     }
@@ -29,19 +29,19 @@ class NewGreenTrait extends Trait {
     greens = ROW_BASE.map(i => false)
 
     onStartCell(state, cell) {
-        const storage = super.onStartCell(state, cell);
-        storage.newgreen = false;
+        const stg = super.onStartCell(state, cell);
+        stg.newgreen = false;
     }
 
-    onRevealCell(state, cell, judged) {
-        if (judged.correctness == GUESS_TYPES.GREEN && !this.greens[cell.col]) {
-            cell.traits.newgreen.newgreen = true;
+    onRevealCell(state, cell, judge) {
+        if (cell.judge.correctness == GUESS_TYPES.GREEN && !this.greens[cell.col]) {
+            this.stg(cell).newgreen = true;
             this.greens[cell.col] = true;
         }
     }
 
     onShareCell(state, cell) {
-        if (cell.traits.newgreen.newgreen) {
+        if (this.stg(cell).newgreen) {
             cell.shareText = "✅";
         }
     }
@@ -51,60 +51,58 @@ class BannedLetterTrait extends Trait {
     name = "bannedletter"
 
     onStart(state) {
-        const storage = super.onStart(state);
+        const stg = super.onStart(state);
 
         let l = state.randAt(5213, ALPHABET.length);
         while (state.target.includes(ALPHABET[l])) {
             l = (l + 1) % ALPHABET.length;
         }
 
-        storage.banned = [ALPHABET[l]];
+        stg.banned = [ALPHABET[l]];
     }
 
     onStartCell(state, cell) {
-        const storage = super.onStartCell(state, cell);
-        storage.blocked = false;
+        const stg = super.onStartCell(state, cell);
+        stg.blocked = false;
     }
 
-    onPreReveal(state, row, judged) {
-        if (judged.cells.some(c => state.traits.bannedletter.banned.includes(c.guess))) {
+    onPreReveal(state, row, judge) {
+        const stg = this.stg(state);
+        if (row.some(c => stg.banned.includes(c.judge.guess))) {
             for (let i = 0; i < NUM_COLS; i++) {
-                const c = row[i];
+                const cell = row[i];
 
-                c.traits.correctness.ignored = true;
-                c.traits.bannedletter.blocked = true;
-                state.letterData[judged.cells[i].guess].traits.correctness.ignored = true;
-                c.element.classList.add("reveal-red");
+                cell.judge.hidden = true;
+                this.stg(cell).blocked = true;
+                cell.element.classList.add("reveal-red");
             }
+            const popup = makeFadingPopup("BANNED!");
+            popup.classList.add("color-red");
+            state.popups.addToRow(popup);
         }
-        console.log(state, row, judged, state.traits.bannedletter.banned);
     }
 
     onShareCell(state, cell) {
-        if (cell.traits.bannedletter.blocked) {
+        if (this.stg(cell).blocked) {
             cell.shareText = cell.col % 2 == 0 ? "⛔" : "⚠️";
         }
     }
 
     onShareRow(state, row) {
-        if (state.rowData[row][0].traits.bannedletter.blocked) {
+        if (this.stg(state.rowData[row][0]).blocked) {
             state.shareText += "🚫 Banned Letter 💥";
         }
     }
 }
 
 class BannedLetterLetterTrait extends LetterTrait {
-    onStartCell(state, cell) {
-        const storage = super.onStartCell(state, cell);
-        storage.banned = state.traits.bannedletter.banned.includes(cell.letter);
-        if (storage.banned) {
-            cell.element.classList.add("reveal-red");
-            cell.traits.correctness.ignored = true;
-        }
-    }
+    name = "bannedletter/l"
 
-    onReveal(state, row, judged) {
-        judged.cells.forEach(c => 
-            state.letterData[c.guess].traits.correctness.ignored = state.traits.bannedletter.banned.includes(c.guess));
+    onStartCell(state, cell) {
+        const stg = super.onStartCell(state, cell);
+        stg.banned = this.stg(state, "bannedletter").banned.includes(cell.letter);
+        if (stg.banned) {
+            cell.element.classList.add("reveal-red");
+        }
     }
 }
