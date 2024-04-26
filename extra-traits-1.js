@@ -66,6 +66,13 @@ class BannedLetterTrait extends Trait {
         stg.blocked = false;
     }
 
+    onReloadCell(state, cell) {
+        const stg = super.onReloadCell(state, cell);
+        if (stg.blocked) {
+            cell.element.classList.add("reveal-red");
+        }
+    }
+
     onPreReveal(state, row, judge) {
         const stg = this.stg(state);
         if (row.some(c => stg.banned.includes(c.judge.guess))) {
@@ -100,10 +107,15 @@ class BannedLetterLetterTrait extends LetterTrait {
     name = "bannedletter/l"
 
     onStartCell(state, cell) {
+        this.onReloadCell(state, cell);
+    }
+
+    onReloadCell(state, cell) {
         const stg = super.onStartCell(state, cell);
         stg.banned = this.stg(state, "bannedletter").banned.includes(cell.letter);
         if (stg.banned) {
             cell.element.classList.add("reveal-red");
         }
+
     }
 }

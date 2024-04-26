@@ -5,15 +5,21 @@ class CurrencyTrait extends Trait {
 
     onStart(state) {
         const stg = super.onStart(state);
-        stg.savedGems = 0;
-        stg.savedCoins = 0;
-        stg.savedGears = 0;
-        stg.totalGems = 0;
+        stg.savedGems = withDef(this.stat(state).savedGems, 0);
+        stg.savedCoins = withDef(this.stat(state).savedCoins, 0);
+        stg.savedGears = withDef(this.stat(state).savedGears, 0);
+        stg.totalGems = stg.savedGems;
+        stg.totalCoins = stg.savedCoins;
+        stg.totalGears = stg.savedGears;
         stg.deltaGems = 0;
-        stg.totalCoins = 0;
         stg.deltaCoins = 0;
-        stg.totalGears = 0;
         stg.deltaGears = 0;
+
+        this.onReload(state);
+    }
+
+    onReload(state) {
+        const stg = super.onReload(state);
         
         const box = document.createElement("span");
         box.classList.add("center-text");
@@ -25,7 +31,7 @@ class CurrencyTrait extends Trait {
 
         let value = document.createElement("span");
         value.classList.add("currency-text");
-        value.innerText = `${stg.totalGems}`;// (+${stg.deltaGems})`;
+        value.innerText = stg.totalGems;
         box.appendChild(value);
         stg.gemsElem = value;
 
@@ -37,7 +43,7 @@ class CurrencyTrait extends Trait {
 
         value = document.createElement("span");
         value.classList.add("currency-text");
-        value.innerText = `${stg.totalCoins}`;// (+${stg.deltaCoins})`;
+        value.innerText = stg.totalCoins;
         box.appendChild(value);
         stg.coinsElem = value;
 
@@ -49,7 +55,7 @@ class CurrencyTrait extends Trait {
 
         value = document.createElement("span");
         value.classList.add("currency-text");
-        value.innerText = `${stg.totalGears}`;// (+${stg.deltaGears})`;
+        value.innerText = stg.totalGears;
         box.appendChild(value);
         stg.gearsElem = value;
 
@@ -108,21 +114,25 @@ class CurrencyTrait extends Trait {
 
     onReveal(state, row, judge) {
         const stg = this.stg(state);
+        const stat = this.stat(state);
 
         let dropGems = stg.deltaGems;
         let diffGems = Math.max(1, Math.floor(dropGems / 100));
         stg.totalGems += stg.deltaGems;
         stg.deltaGems = 0;
+        stat.savedGems = stg.totalGems;
 
         let dropCoins = stg.deltaCoins;
         let diffCoins = Math.max(1, Math.floor(dropCoins / 100));
         stg.totalCoins += stg.deltaCoins;
         stg.deltaCoins = 0;
+        stat.savedCoins = stg.totalCoins;
 
         let dropGears = stg.deltaGears;
         let diffGears = Math.max(1, Math.floor(dropGears / 10));
         stg.totalGears += stg.deltaGears;
         stg.deltaGears = 0;
+        stat.savedGears = stg.totalGears;
 
         clearInterval(this.intId);
         this.intId = setInterval(() => {

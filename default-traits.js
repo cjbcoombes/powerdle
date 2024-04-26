@@ -5,9 +5,33 @@ class Trait {
         return obj.traits[trait ? trait : this.name];
     }
 
+    stat(obj, trait) {
+        return obj.stats[trait ? trait : this.name];
+    }
+
+    onReload(state) {
+        if (state.traits[this.name] == undefined) {
+            state.traits[this.name] = {};
+        }
+        if (state.stats[this.name] == undefined) {
+            state.stats[this.name] = {};
+        }
+        return this.stg(state);
+    }
+
     onStart(state) {
         state.traits[this.name] = {};
+        if (state.stats[this.name] == undefined) {
+            state.stats[this.name] = {};
+        }
         return this.stg(state);
+    }
+
+    onReloadCell(state, cell) {
+        if (cell.traits[this.name] == undefined) {
+            cell.traits[this.name] = {};
+        }
+        return this.stg(cell);
     }
 
     onStartCell(state, cell) {
@@ -56,12 +80,20 @@ class TypedTrait extends Trait {
 
     onStartCell(state, cell) {
         const stg = super.onStartCell(state, cell);
+        stg.letter = "";
+
+        this.onReloadCell(state, cell);
+    }
+
+    onReloadCell(state, cell) {
+        const stg = super.onReloadCell(state, cell);
+
         const letterbox = document.createElement("span");
         letterbox.classList.add("center-text");
         cell.element.appendChild(letterbox);
 
         stg.letterbox = letterbox;
-        stg.letter = "";
+        letterbox.innerText = stg.letter.toUpperCase();
     }
 }
 
@@ -134,6 +166,13 @@ class CorrectnessColoringTrait extends Trait {
         stg.correctness = GUESS_TYPES.NONE;
     }
 
+    onReloadCell(state, cell) {
+        const stg = super.onReloadCell(state, cell);
+        if (cell.judge.judged) {
+            this.onRevealCell(state, cell, null);
+        }
+    }
+
     onShareCell(state, cell) {
         // 🟥 🟧 🟨 🟩 🟦 🟪 🟫 ⬛ ⬜ ❔
         if (cell.judge.hidden) {
@@ -167,21 +206,34 @@ class StandardPointsTrait extends Trait {
 
     onStart(state) {
         const stg = super.onStart(state);
+        stg.saved = withDef(this.stat(state).saved, 0);
         stg.total = 0;
         stg.delta = 0;
         stg.rowDeltas = [];
         
+        this.onReload(state);
+    }
+
+    onReload(state) {
+        const stg = super.onReload(state);
+
         const box = document.createElement("span");
         box.classList.add("center-text");
         const word = document.createElement("span");
         word.innerText = "Total: ";
         box.appendChild(word);
         const value = document.createElement("span");
-        value.innerText = "0";
+        value.innerText = stg.total;
         box.appendChild(value);
 
         stg.element = value;
         state.popups.infoBoxes.right.appendChild(box);
+
+        for (let i = 0; i < stg.rowDeltas.length; i++) {
+            const popup = makeCenterText(signNum(stg.rowDeltas[i]));
+            popup.classList.add("fade-in");
+            state.popups.addToRow(popup, Infinity, i);
+        }
     }
 
     onReveal(state, row, judge) {
@@ -200,6 +252,7 @@ class StandardPointsTrait extends Trait {
 
         let drop = stg.delta;
         stg.total += stg.delta;
+        this.stat(state).saved = stg.total;
         stg.rowDeltas.push(stg.delta);
         stg.delta = 0;
 
@@ -239,6 +292,10 @@ class LetterTrait {
         return obj.traits[trait ? trait : this.name];
     }
 
+    stat(obj, trait) {
+        return obj.stats[trait ? trait : this.name];
+    }
+
     onType(state) {
 
     }
@@ -247,9 +304,29 @@ class LetterTrait {
 
     }
 
+    onReload(state) {
+        if (state.traits[this.name] == undefined) {
+            state.traits[this.name] = {};
+        }
+        if (state.stats[this.name] == undefined) {
+            state.stats[this.name] = {};
+        }
+        return this.stg(state);
+    }
+
     onStart(state) {
         state.traits[this.name] = {};
+        if (state.stats[this.name] == undefined) {
+            state.stats[this.name] = {};
+        }
         return state.traits[this.name];
+    }
+
+    onReloadCell(state, cell) {
+        if (cell.traits[this.name] == undefined) {
+            cell.traits[this.name] = {};
+        }
+        return this.stg(cell);
     }
 
     onStartCell(state, cell) {
@@ -270,13 +347,22 @@ class CorrectnessColoringLetterTrait extends LetterTrait {
         stg.correctness = GUESS_TYPES.NONE;
     }
 
+    onReload(state) {
+        const stg = super.onReload(state);
+        for (let i = 0; i < NUM_ROWS; i++) {
+            if (state.rowData[i][0].judge.judged) {
+                this.onReveal(state, state.rowData[i], null);
+            }
+        }
+    }
+
     onReveal(state, row, judge) {
         for (let i = 0; i < NUM_COLS; i++) {
             const cell = state.letterData[row[i].judge.guess];
             const stg = this.stg(cell);
             
             if (!row[i].judge.hidden) {
-                if (stg.correctness > row[i].judge.correctness) {
+                if (stg.correctness >= row[i].judge.correctness) {
                     stg.correctness = row[i].judge.correctness;
                     cell.element.classList.remove("reveal-green");
                     cell.element.classList.remove("reveal-yellow");

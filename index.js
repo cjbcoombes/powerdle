@@ -1,44 +1,70 @@
 
-const gameState = {
-    turn: 0,
-    partial: "",
-    target: answerWords[Math.floor(Math.random() * answerWords.length)],
-    gameOver: false,
-    won: false,
+const day = Math.floor(Date.now() / (1000 * 60 * 60 * 24)) - 19838;
+const expectedGameVersion = 0;
+const prevState = localStorage.getItem("powerdle-state");
+let hasPrev = !!prevState;
+let gameState = null;
 
-    randAt: (k, m = 2**31) => {
-        let seed = gameState.seed - k;
-        k = k % 100 + 15;
-        while (k > 0) {
-            seed = (1103515245 * seed + 12345) % (2**31);
-            k--;
-        }
-        return seed % m;
-    },
+if (hasPrev) {
+    gameState = JSON.parse(prevState);
+    if (gameState.day != day || gameState.version != expectedGameVersion) hasPrev = false;
+}
+if (!hasPrev) {
+    gameState = {
+        version: expectedGameVersion,
+        day: day,
+        turn: 0,
+        partial: "",
+        target: answerWords[day % answerWords.length],
+        gameOver: false,
+        won: false,
 
-    rowData: [],
-    letterData: {},
-    
-    traits: {},
-    
-    popups: {
-        addToRow: (evt, time = 2000) => {
-            if (gameState.popups.rows[gameState.turn].length == 0) {
-                gameState.popups.rowBoxes[gameState.turn].right.appendChild(evt);
-            }
-            gameState.popups.rows[gameState.turn].push(evt)
-            gameState.popups.rowTimers[gameState.turn].push(time);
-        },
-        rows: ROW_BASE.map(i => []),
-        rowBoxes: [],
-        rowTimers: ROW_BASE.map(i => []),
-        infoBoxes: {}
+        rowData: [],
+        letterData: {},
+        
+        traits: {},
+
+        stats: (x => x ? JSON.parse(x) : {})(localStorage.getItem("powerdle-stats")),
+    };
+
+    gameState.seed = gameState.target.split("").map(l => l.charCodeAt(0)).reduce((acc, elem) => acc * 3217 + elem) % 10293821;
+}
+
+gameState.randAt = (k, m = 2**31) => {
+    let seed = gameState.seed - k;
+    k = k % 100 + 15;
+    while (k > 0) {
+        seed = (1103515245 * seed + 12345) % (2**31);
+        k--;
     }
+    return seed % m;
 };
 
-gameState.seed = gameState.target.split("").map(l => l.charCodeAt(0)).reduce((acc, elem) => acc * 3217 + elem) % 10293821;
+gameState.popups = {
+    addToRow: (evt, time = 2000, i) => {
+        i = i == undefined ? gameState.turn : i;
+        if (gameState.popups.rows[i].length == 0) {
+            gameState.popups.rowBoxes[i].right.appendChild(evt);
+        }
+        gameState.popups.rows[i].push(evt)
+        gameState.popups.rowTimers[i].push(time);
+    },
+    rows: ROW_BASE.map(i => []),
+    rowBoxes: [],
+    rowTimers: ROW_BASE.map(i => []),
+    infoBoxes: {}
+};
+
+const expectedStatsVersion = 1;
+if (gameState.stats.statsVersion != expectedStatsVersion) {
+    gameState.stats = {
+        statsVersion: expectedStatsVersion 
+    };
+}
 
 console.log(gameState);
+
+// ----------------------
 
 const typedTrait = new TypedTrait();
 const allTraits = [
@@ -77,7 +103,6 @@ for (let i = 0; i < NUM_ROWS + 1; i++) {
     leftBox.classList.add("row-popup-box");
     leftContainer.appendChild(leftBox);
     
-    
     const rightContainer = document.createElement("td");
     rightContainer.classList.add("row-popup-box-container", "right");
     const rightBox = document.createElement("div");
@@ -97,10 +122,9 @@ for (let i = 0; i < NUM_ROWS + 1; i++) {
             popupBox.classList.add("cell-popup-box");
             cell.appendChild(popupBox);
 
-            const cellData = {
+            const cellData = hasPrev ? gameState.rowData[i][j] : {
                 row: i,
                 col: j,
-                element: cell,
                 shareText: "*",
                 judge: {
                     judged: false,
@@ -111,12 +135,14 @@ for (let i = 0; i < NUM_ROWS + 1; i++) {
                 },
                 traits: {},
                 popups: {
-                    box: popupBox,
                     elems: [],
                     timers: []
                 }
             };
+            rowData.push(cellData);
 
+            cellData.element = cell;
+            cellData.popups.box = popupBox;
             cellData.popups.add = (evt, time = 2000) => {
                 if (cellData.popups.elems.length == 0) {
                     cellData.popups.box.appendChild(evt);
@@ -125,11 +151,14 @@ for (let i = 0; i < NUM_ROWS + 1; i++) {
                 cellData.popups.timers.push(time);
             };
 
-            allTraits.forEach(t => t.onStartCell(gameState, cellData));
+            if (hasPrev) {
+                allTraits.forEach(t => t.onReloadCell(gameState, cellData));
+            } else {
+                allTraits.forEach(t => t.onStartCell(gameState, cellData));
+            }
 
-            rowData.push(cellData);
         }
-        gameState.rowData.push(rowData);
+        if (!hasPrev) gameState.rowData.push(rowData);
         gameState.popups.rowBoxes.push({left: leftBox, right:rightBox});
     } else {
         gameState.popups.infoBoxes.left = leftBox;
@@ -147,7 +176,12 @@ for (let i = 0; i < NUM_ROWS + 1; i++) {
     displayTable.appendChild(row);
 }
 
-allTraits.forEach(t => t.onStart(gameState));
+
+if (hasPrev) {
+    allTraits.forEach(t => t.onReload(gameState));
+} else {
+    allTraits.forEach(t => t.onStart(gameState));
+}
 
 const letterTable = document.getElementById("letters");
 const alphabetRows = [
@@ -175,14 +209,18 @@ for (let i = 0; i < alphabetRows.length; i++) {
         cell.appendChild(makeCenterText(letter.toUpperCase()));
         cell.addEventListener("click", e => keyEvent(letter));
 
-        const letterData = {
-            element: cell,
+        const letterData = hasPrev ? gameState.letterData[letter] : {
             letter: letter,
             traits: {}
         };
-        allLetterTraits.forEach(t => t.onStartCell(gameState, letterData));
+        letterData.element = cell;
+        if (hasPrev) {
+            allLetterTraits.forEach(t => t.onReloadCell(gameState, letterData));
+        } else {
+            allLetterTraits.forEach(t => t.onStartCell(gameState, letterData));
+        }
 
-        gameState.letterData[letter] = letterData;
+        if (!hasPrev) gameState.letterData[letter] = letterData;
         cellContainer.appendChild(cell);
     }
 
@@ -198,9 +236,16 @@ for (let i = 0; i < alphabetRows.length; i++) {
     letterTable.append(row);
 }
 
-allLetterTraits.forEach(t => t.onStart(gameState));
+if (hasPrev) {
+    allLetterTraits.forEach(t => t.onReload(gameState));
+} else {
+    allLetterTraits.forEach(t => t.onStart(gameState));
+}
 
 // -----------
+
+localStorage.setItem("powerdle-stats", JSON.stringify(gameState.stats));
+localStorage.setItem("powerdle-state", JSON.stringify(gameState));
 
 const judgeGuess = guess => {
     guess = guess.split("");
@@ -302,9 +347,15 @@ const keyEvent = key => {
 
         console.log(gameState.shareText);
     }
+
+    localStorage.setItem("powerdle-stats", JSON.stringify(gameState.stats));
+    localStorage.setItem("powerdle-state", JSON.stringify(gameState));
 }
 
-document.body.addEventListener("keydown", e => keyEvent(e.key));
+document.body.addEventListener("keydown", e => {
+    if (e.altKey || e.ctrlKey || e.metaKey) return;
+    keyEvent(e.key);
+});
 
 setInterval(() => {
     for (let i = 0; i < NUM_ROWS; i++) {
