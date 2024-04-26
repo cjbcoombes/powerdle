@@ -1,14 +1,14 @@
 body {
     background-color: black;
+    font-family: "Anton", sans-serif;
+    font-weight: 400;
+    font-style: normal;
 }
 
 body, body * {
     box-sizing: border-box;
     padding: 0;
     margin: 0;
-    font-family: "Anton", sans-serif;
-    font-weight: 400;
-    font-style: normal;
 }
 
 #display, #letters {
@@ -16,9 +16,29 @@ body, body * {
     width: 100%;
 }
 
+#overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    z-index: 2000;
+}
+
+#overlay.shaded {
+    background-color: #AAA8;
+}
+
 .center-text {
     float: left;
     position: relative;
+    top: 50%;
+    left: 50%;
+    transform: translateX(-50%) translateY(-50%);
+}
+
+.center-box {
+    position: absolute;
     top: 50%;
     left: 50%;
     transform: translateX(-50%) translateY(-50%);
@@ -87,6 +107,35 @@ body, body * {
     color: white;
     border: 2px solid gray;
     font-size: 20px;
+}
+
+.share-box {
+    background-color: black;
+    border: 1px solid white;
+    color: white;
+    font-family: "Source Code Pro", monospace;
+    border-radius: 20px;
+    padding: 20px;
+    font-size: 0.8em;
+    white-space: nowrap;
+    text-align: center;
+}
+
+.share-box div {
+    text-align: left;
+}
+
+
+.share-button {
+    padding: 10px;
+    background-color: green;
+    border: none;
+    border-radius: 10px;
+    margin: 10px;
+}
+
+.share-button:hover {
+    cursor: pointer;
 }
 
 .letter.wide {

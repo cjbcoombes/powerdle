@@ -52,7 +52,24 @@ gameState.popups = {
     rows: ROW_BASE.map(i => []),
     rowBoxes: [],
     rowTimers: ROW_BASE.map(i => []),
-    infoBoxes: {}
+    infoBoxes: {},
+
+    addToOverlay: (evt, time = 2000, shaded = false) => {
+        if (gameState.popups.overlayElems.length == 0) {
+            gameState.popups.overlayBox.appendChild(evt);
+            gameState.popups.overlayBox.style["display"] = "block";
+            if (shaded) {
+                overlayBox.classList.add("shaded");
+            }
+        }
+        gameState.popups.overlayElems.push(evt)
+        gameState.popups.overlayTimers.push(time);
+        gameState.popups.overlayShaded.push(shaded);
+    },
+    overlayBox: document.getElementById("overlay"),
+    overlayTimers: [],
+    overlayShaded: [],
+    overlayElems: []
 };
 
 const expectedStatsVersion = 1;
@@ -76,7 +93,7 @@ const allTraits = [
     new BannedLetterTrait(),
 
     new CurrencyTrait(), 
-    new StandardPointsTrait() // Important that this is last in the list
+    new StandardPointsTrait() // Important that this is after anything that adds points or creates side popups
 ];
 const revTraits = allTraits.slice().reverse();
 
@@ -247,6 +264,40 @@ if (hasPrev) {
 localStorage.setItem("powerdle-stats", JSON.stringify(gameState.stats));
 localStorage.setItem("powerdle-state", JSON.stringify(gameState));
 
+const renderShare = () => {
+    const box = document.createElement("div");
+    box.classList.add("center-box", "share-box");
+    gameState.popups.overlayBox.style["display"] = "block";
+    gameState.popups.overlayBox.classList.add("shaded");
+    
+    const textBox = document.createElement("div");
+    textBox.innerText = gameState.shareText;
+    box.appendChild(textBox);
+    
+    let button = document.createElement("button");
+    button.classList.add("share-button");
+    button.innerText = "Copy";
+    button.addEventListener("click", e => {
+        navigator.clipboard.writeText(gameState.shareText);
+    });
+    box.appendChild(button);
+
+    button = document.createElement("button");
+    button.classList.add("share-button");
+    button.innerText = "Close";
+    button.addEventListener("click", e => {
+        gameState.popups.overlayBox.removeChild(box);
+        gameState.popups.overlayBox.style["display"] = "none";
+    });
+    box.appendChild(button);
+
+    gameState.popups.overlayBox.appendChild(box);
+};
+
+if (gameState.gameOver) {
+    renderShare();
+}
+
 const judgeGuess = guess => {
     guess = guess.split("");
     const ans = gameState.target.split("");
@@ -296,6 +347,11 @@ const keyEvent = key => {
                     gameState.rowData[gameState.turn][i].judge.correctness = judge.cells[i].correctness;
                     gameState.rowData[gameState.turn][i].judge.judged = true;
                 }
+                
+                if (gameState.turn >= NUM_ROWS - 1 || judge.allCorrect) {
+                    gameState.gameOver = true;
+                    gameState.won = judge.allCorrect;
+                }
 
                 allTraits.forEach(t => t.onPreReveal(gameState, gameState.rowData[gameState.turn], judge));
                 for (let i = 0; i < NUM_COLS; i++) {
@@ -306,11 +362,6 @@ const keyEvent = key => {
 
                 gameState.turn++;
                 gameState.partial = "";
-
-                if (gameState.turn >= NUM_ROWS || judge.allCorrect) {
-                    gameState.gameOver = true;
-                    gameState.won = judge.allCorrect;
-                }
             } else {
                 const popup = makeFadingPopup("INVALID");
                 popup.classList.add("color-red");
@@ -332,7 +383,7 @@ const keyEvent = key => {
     }
 
     if (gameState.gameOver) {
-        gameState.shareText = `Powerdle ${gameState.won ? gameState.turn : 'X'}/6\n\n`;
+        gameState.shareText = `Powerdle #${gameState.day} ${gameState.won ? gameState.turn : 'X'}/6\n\n`;
         for (let i = 0; i < NUM_ROWS; i++) {
             for (let j = 0; j < NUM_COLS; j++) {
                 allTraits.forEach(t => t.onShareCell(gameState, gameState.rowData[i][j]));
@@ -345,7 +396,7 @@ const keyEvent = key => {
         gameState.shareText += '\n';
         revTraits.forEach(t => t.onShare(gameState));
 
-        console.log(gameState.shareText);
+        renderShare();
     }
 
     localStorage.setItem("powerdle-stats", JSON.stringify(gameState.stats));
@@ -371,6 +422,30 @@ setInterval(() => {
                 gameState.popups.rowBoxes[i].right.appendChild(gameState.popups.rows[i][0]);
             }
         }
+
+        //
+
+        if (gameState.popups.overlayTimers.length <= 0) continue;
+        gameState.popups.overlayTimers[0] -= 50;
+        
+        if (gameState.popups.overlayTimers[0] <= 0) {
+            gameState.popups.overlayTimers.shift();
+            gameState.popups.overlayElems.shift();
+            gameState.popups.overlayShaded.shift();
+
+            gameState.popups.overlayBox.innerHTML = "";
+            gameState.popups.overlayBox.classList.remove("shaded");
+            if (gameState.popups.overlayElems.length != 0) {
+                gameState.popups.overlayBox.appendChild(gameState.popups.overlayElems[0]);
+                if (gameState.popups.overlayShaded[0]) {
+                    gameState.popups.overlayBox.classList.add("shaded");
+                }
+            } else {
+                gameState.popups.overlayBox.style["display"] = "none";
+            }
+        }
+
+        //
 
         for (let j = 0; j < NUM_COLS; j++) {
             const cell = gameState.rowData[i][j];
