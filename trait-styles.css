@@ -1,0 +1,17 @@
+.currency-img {
+    font-size: 1em;
+}
+
+.currency-text {
+    font-size: 0.7em;
+}
+
+.currency-img.space {
+    margin-left: 1em;
+}
+
+.currency-popup {
+    font-size: 1.4em;
+    text-shadow: 0 0 0.5em white;
+    padding-bottom: 0.2em;
+}

@@ -49,8 +49,10 @@ const allTraits = [
     new NewGreenTrait(),
     new BannedLetterTrait(),
 
+    new CurrencyTrait(), 
     new StandardPointsTrait() // Important that this is last in the list
 ];
+const revTraits = allTraits.slice().reverse();
 
 const allLetterTraits = [
     new LetterTrait(),
@@ -91,6 +93,10 @@ for (let i = 0; i < NUM_ROWS + 1; i++) {
 
             cellContainer.appendChild(cell);
 
+            const popupBox = document.createElement("div");
+            popupBox.classList.add("cell-popup-box");
+            cell.appendChild(popupBox);
+
             const cellData = {
                 row: i,
                 col: j,
@@ -103,7 +109,20 @@ for (let i = 0; i < NUM_ROWS + 1; i++) {
                     ans: "",
                     correctness: GUESS_TYPES.NONE
                 },
-                traits: {}
+                traits: {},
+                popups: {
+                    box: popupBox,
+                    elems: [],
+                    timers: []
+                }
+            };
+
+            cellData.popups.add = (evt, time = 2000) => {
+                if (cellData.popups.elems.length == 0) {
+                    cellData.popups.box.appendChild(evt);
+                }
+                cellData.popups.elems.push(evt)
+                cellData.popups.timers.push(time);
             };
 
             allTraits.forEach(t => t.onStartCell(gameState, cellData));
@@ -115,7 +134,11 @@ for (let i = 0; i < NUM_ROWS + 1; i++) {
     } else {
         gameState.popups.infoBoxes.left = leftBox;
         gameState.popups.infoBoxes.right = rightBox;
-        gameState.popups.infoBoxes.center = cellContainer;
+        const box = document.createElement("div");
+        box.classList.add("row-popup-box");
+        cellContainer.appendChild(box);
+        
+        gameState.popups.infoBoxes.center = box;
     }
 
     row.appendChild(leftContainer);
@@ -271,11 +294,11 @@ const keyEvent = key => {
                 gameState.shareText += gameState.rowData[i][j].shareText;
             }
             gameState.shareText += ' ';
-            allTraits.forEach(t => t.onShareRow(gameState, i));
+            revTraits.forEach(t => t.onShareRow(gameState, i));
             gameState.shareText += '\n';
         }
         gameState.shareText += '\n';
-        allTraits.forEach(t => t.onShare(gameState));
+        revTraits.forEach(t => t.onShare(gameState));
 
         console.log(gameState.shareText);
     }
@@ -295,6 +318,22 @@ setInterval(() => {
             gameState.popups.rowBoxes[i].right.innerHTML = "";
             if (gameState.popups.rows[i].length != 0) {
                 gameState.popups.rowBoxes[i].right.appendChild(gameState.popups.rows[i][0]);
+            }
+        }
+
+        for (let j = 0; j < NUM_COLS; j++) {
+            const cell = gameState.rowData[i][j];
+            if (cell.popups.timers.length <= 0) continue;
+            cell.popups.timers[0] -= 50;
+            
+            if (cell.popups.timers[0] <= 0) {
+                cell.popups.timers.shift();
+                cell.popups.elems.shift();
+
+                cell.popups.box.innerHTML = "";
+                if (cell.popups.elems.length != 0) {
+                    cell.popups.box.appendChild(cell.popups.elems[0]);
+                }
             }
         }
     }

@@ -89,18 +89,17 @@ class CorrectnessColoringTrait extends Trait {
             } else if (comboSize != 0) {
                 const popup = makeFadingPopup(
                     comboSize == 1 ? `GREEN +${this.greenComboPoints[comboSize]}` : 
-                    `COMBO x${comboSize} +${this.greenComboPoints[comboSize]}`
+                    `COMBO x${comboSize} +${this.greenComboPoints[comboSize]}`,
+                    p => p.classList.add("color-green")
                 );
                 pointStg.delta += this.greenComboPoints[comboSize];
-                popup.classList.add("color-green");
                 state.popups.addToRow(popup);
                 comboSize = 0;
             }
 
             if (row[i].judge.correctness == GUESS_TYPES.YELLOW) {
-                const popup = makeFadingPopup(`YELLOW +${this.yellowPoints}`);
+                const popup = makeFadingPopup(`YELLOW +${this.yellowPoints}`, p => p.classList.add("color-yellow"));
                 pointStg.delta += this.yellowPoints;
-                popup.classList.add("color-yellow");
                 state.popups.addToRow(popup);
             }
         }
@@ -108,10 +107,10 @@ class CorrectnessColoringTrait extends Trait {
         if (comboSize != 0) {
             const popup = makeFadingPopup(
                 comboSize == 1 ? `GREEN +${this.greenComboPoints[comboSize]}` : 
-                `COMBO x${comboSize} +${this.greenComboPoints[comboSize]}`
+                `COMBO x${comboSize} +${this.greenComboPoints[comboSize]}`,
+                p => p.classList.add("color-green")
             );
             pointStg.delta += this.greenComboPoints[comboSize];
-            popup.classList.add("color-green");
             state.popups.addToRow(popup);
             comboSize = 0;
         }
@@ -195,26 +194,26 @@ class StandardPointsTrait extends Trait {
             state.popups.addToRow(popup);
         }
 
-        const popup = makeCenterText(`+${stg.delta}`);
+        const popup = makeCenterText(signNum(stg.delta));
         popup.classList.add("fade-in");
         state.popups.addToRow(popup, Infinity);
 
-        let base = stg.total;
+        let drop = stg.delta;
         stg.total += stg.delta;
         stg.rowDeltas.push(stg.delta);
         stg.delta = 0;
 
-        let diff = Math.max(1, Math.floor((stg.total - base) / 100));
+        let diff = Math.max(1, Math.floor(drop / 100));
         clearInterval(this.intId);
         this.intId = setInterval(() => {
-            if (base < stg.total) {
-                base += diff;
+            if (drop > 0) {
+                drop -= diff;
             }
-            if (base >= stg.total) {
-                base = stg.total;
+            if (drop <= 0) {
+                drop = 0;
                 clearInterval(this.intId);
             }
-            stg.element.innerText = base.toString();
+            stg.element.innerText = stg.total - drop;
         }, 10);
     }
 

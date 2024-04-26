@@ -24,11 +24,23 @@ const makeCenterText = text => {
     return elem;
 };
 
-const makeFadingPopup = (text, classes = []) => {
+const makeFadingPopup = (text, func) => {
     const elem = document.createElement("span");
     elem.classList.add("center-text", "fade-in-out");
-    classes.forEach(c => elem.classList.add(c));
     elem.innerText = text;
+    if (func) {
+        func(elem);
+    }
+    return elem;
+};
+
+const makeGrowingPopup = (text, func) => {
+    const elem = document.createElement("span");
+    elem.classList.add("center-text", "grow-in-out");
+    elem.innerText = text;
+    if (func) {
+        func(elem);
+    }
     return elem;
 };
 

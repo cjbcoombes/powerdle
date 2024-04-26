@@ -8,7 +8,7 @@ class ReusedGrayTrait extends Trait {
     }
 
     onRevealCell(state, cell, judge) {
-        if (cell.judge.correctness == GUESS_TYPES.GRAY) {
+        if (!cell.judge.hidden && cell.judge.correctness == GUESS_TYPES.GRAY) {
             if (this.grays.includes(cell.judge.guess)) {
                 this.stg(cell).reused = true;
             } else {
@@ -34,7 +34,7 @@ class NewGreenTrait extends Trait {
     }
 
     onRevealCell(state, cell, judge) {
-        if (cell.judge.correctness == GUESS_TYPES.GREEN && !this.greens[cell.col]) {
+        if (!cell.judge.hidden && cell.judge.correctness == GUESS_TYPES.GREEN && !this.greens[cell.col]) {
             this.stg(cell).newgreen = true;
             this.greens[cell.col] = true;
         }
@@ -76,7 +76,8 @@ class BannedLetterTrait extends Trait {
                 this.stg(cell).blocked = true;
                 cell.element.classList.add("reveal-red");
             }
-            const popup = makeFadingPopup("BANNED!");
+            const popup = makeFadingPopup("BANNED! -500");
+            this.stg(state, "points").delta -= 500;
             popup.classList.add("color-red");
             state.popups.addToRow(popup);
         }
