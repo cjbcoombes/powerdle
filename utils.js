@@ -26,7 +26,7 @@ const makeCenterText = text => {
 
 const makeFadingPopup = (text, func) => {
     const elem = document.createElement("span");
-    elem.classList.add("center-text", "fade-in-out");
+    elem.classList.add("fade-in-out");
     elem.innerText = text;
     if (func) {
         func(elem);

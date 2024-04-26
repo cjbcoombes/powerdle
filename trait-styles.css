@@ -1,3 +1,7 @@
+.currency-box {
+    text-align: center;
+}
+
 .currency-img {
     font-size: 1em;
 }
@@ -14,4 +18,35 @@
     font-size: 1.4em;
     text-shadow: 0 0 0.5em white;
     padding-bottom: 0.2em;
+}
+
+.prestige-box {
+    margin: 10px 20px;
+}
+
+.prestige-text {
+    color: white;
+    display: inline-block;
+    font-size: 0.7em;
+    width: 49%;
+}
+
+.prestige-icon {
+    font-size: 1.5em;
+    text-shadow: 0 0 10px rgba(255, 255, 0, 0.85);
+}
+
+.prestige-bar {
+    background-color: gray;
+    height: 20px;
+    position: relative;
+}
+
+.prestige-bar-inner {
+    position: absolute;
+    top: 0;
+    left: 0;
+    height: 100%;
+    /* width: 25%; */
+    background-color: blueviolet;
 }

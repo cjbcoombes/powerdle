@@ -22,7 +22,7 @@ class CurrencyTrait extends Trait {
         const stg = super.onReload(state);
         
         const box = document.createElement("span");
-        box.classList.add("center-text");
+        box.classList.add("currency-box");
 
         let word = document.createElement("span");
         word.classList.add("currency-img");
@@ -59,14 +59,16 @@ class CurrencyTrait extends Trait {
         box.appendChild(value);
         stg.gearsElem = value;
 
-        state.popups.infoBoxes.center.appendChild(box);
+        const container = document.createElement("div");
+        container.appendChild(box);
+        state.popups.infoBoxes.center.appendChild(container);
     }
 
     onStartCell(state, cell) {
         const stg = super.onStartCell(state, cell);
         const off = cell.row * 5 + cell.col * 17;
 
-        const gems = Math.max(0, state.randAt(1823 + off, 7) - 6 + 1);
+        const gems = Math.max(0, state.randAt(1823 + off, 9) - 8 + 1);
         const coins = Math.max(0, state.randAt(8130 + off, 14) - 7 + 1);
         const gears = Math.max(0, state.randAt(7422 + off, 20) - 10 + 1);
         stg.gems = gems;

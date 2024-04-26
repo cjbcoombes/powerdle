@@ -203,6 +203,26 @@ class StandardPointsTrait extends Trait {
         1000,
         500
     ]
+    // [1,2,3,...].map(e => 1000 * Math.floor(5 * ((1 + e)**(1 + e / 8))))
+    prestigeLevels = [
+        5000,10000,19000,33000,55000,91000,150000,246000,405000,666000,1101000,1828000,3046000,5099000,Infinity
+    ]
+    prestigeIcons = ["🍈","🍋","🍎","🍏","🥝","🍇","🍐","🍊","🍑","🥭","🍍","🍒","🍓","🍉","🍌"];
+
+    calcLevel(points) {
+        for (let i = 0; i < this.prestigeLevels.length; i++) {
+            if (points < this.prestigeLevels[i]) return i;
+        }
+        return -1;
+    }
+
+    showPrestige(stg, level, value, high1, high2 = high1) {
+        stg.levelElem.innerText = this.prestigeIcons[level];
+        stg.boundsElem.innerText = Math.round(value) + " / " + Math.round(high2);
+
+        const pct = 100 * Math.max(value, 0) / high1;
+        stg.barElem.style["width"] = pct + "%";
+    }
 
     onStart(state) {
         const stg = super.onStart(state);
@@ -217,8 +237,7 @@ class StandardPointsTrait extends Trait {
     onReload(state) {
         const stg = super.onReload(state);
 
-        const box = document.createElement("span");
-        box.classList.add("center-text");
+        const box = document.createElement("div");
         const word = document.createElement("span");
         word.innerText = "Total: ";
         box.appendChild(word);
@@ -230,10 +249,51 @@ class StandardPointsTrait extends Trait {
         state.popups.infoBoxes.right.appendChild(box);
 
         for (let i = 0; i < stg.rowDeltas.length; i++) {
-            const popup = makeCenterText(signNum(stg.rowDeltas[i]));
+            const popup = document.createElement("span");
+            popup.innerText = signNum(stg.rowDeltas[i]);
             popup.classList.add("fade-in");
             state.popups.addToRow(popup, Infinity, i);
         }
+
+        const prestigeBox = document.createElement("div");
+        prestigeBox.classList.add("prestige-box");
+
+        let prestigeText = document.createElement("div");
+        prestigeText.classList.add("prestige-text");
+        prestigeText.style["text-align"] = "left";
+        prestigeBox.appendChild(prestigeText);
+
+        let prestigeSubText = document.createElement("span");
+        prestigeSubText.innerText = "Prestige Level: ";
+        prestigeText.appendChild(prestigeSubText);
+
+        prestigeSubText = document.createElement("span");
+        prestigeText.appendChild(prestigeSubText);
+        prestigeSubText.classList.add("prestige-icon");
+        stg.levelElem = prestigeSubText;
+
+        prestigeText = document.createElement("div");
+        prestigeText.classList.add("prestige-text");
+        prestigeText.style["text-align"] = "right";
+        prestigeBox.appendChild(prestigeText);
+
+        prestigeSubText = document.createElement("span");
+        prestigeText.appendChild(prestigeSubText);
+        stg.boundsElem = prestigeSubText;
+        
+        const prestigeBar = document.createElement("div");
+        prestigeBar.classList.add("prestige-bar");
+        prestigeBox.appendChild(prestigeBar);
+
+        const prestigeBarInner = document.createElement("div");
+        prestigeBarInner.classList.add("prestige-bar-inner");
+        stg.barElem = prestigeBarInner;
+        prestigeBar.appendChild(prestigeBarInner);
+
+        const level = this.calcLevel(stg.total);
+        this.showPrestige(stg, level, stg.total, this.prestigeLevels[level]);
+
+        state.popups.infoBoxes.center.appendChild(prestigeBox);
     }
 
     onReveal(state, row, judge) {
@@ -246,27 +306,41 @@ class StandardPointsTrait extends Trait {
             state.popups.addToRow(popup);
         }
 
-        const popup = makeCenterText(signNum(stg.delta));
+        const popup = document.createElement("span");
+        popup.innerText = signNum(stg.delta);
         popup.classList.add("fade-in");
         state.popups.addToRow(popup, Infinity);
 
-        let drop = stg.delta;
+        let drop1 = stg.delta;
         stg.total += stg.delta;
         this.stat(state).saved = stg.total;
         stg.rowDeltas.push(stg.delta);
         stg.delta = 0;
 
-        let diff = Math.max(1, Math.floor(drop / 100));
+        const tgt = stg.total;
+        const tgtLevel = this.calcLevel(stg.total);
+        let currLevel = this.calcLevel(stg.total - drop1);
+        let currVal = stg.total - drop1;
+        let upperVal = this.prestigeLevels[currLevel];
+
+        let diff = Math.max(1, Math.floor(drop1 / 100));
         clearInterval(this.intId);
         this.intId = setInterval(() => {
-            if (drop > 0) {
-                drop -= diff;
+            drop1 = Math.max(0, drop1 - diff);
+            const cap = Math.min(upperVal, tgt);
+            currVal = Math.min(cap, currVal + Math.max(1, (cap - currVal) / 10));
+            upperVal = Math.min(this.prestigeLevels[currLevel], upperVal + Math.max(1, (this.prestigeLevels[currLevel] - upperVal) / 5));
+
+            if (currVal >= upperVal && currLevel < tgtLevel) {
+                currLevel++;
             }
-            if (drop <= 0) {
-                drop = 0;
+
+            if (drop1 <= 0 && currLevel >= tgtLevel) {
                 clearInterval(this.intId);
             }
-            stg.element.innerText = stg.total - drop;
+
+            stg.element.innerText = stg.total - drop1;
+            this.showPrestige(stg, currLevel, currVal, upperVal, this.prestigeLevels[currLevel]);
         }, 10);
     }
 
@@ -279,7 +353,20 @@ class StandardPointsTrait extends Trait {
     }
 
     onShare(state) {
-        state.shareText += "Total Points: " + signNum(this.stg(state).total) + "\n\n";
+        // ▰▱
+        // 🟪⬜
+        const stg = this.stg(state);
+
+        state.shareText += `Total Points: ${signNum(this.stg(state).total)}\n\n`;
+
+        const level = this.calcLevel(stg.total);
+        state.shareText += `Prestige Level:${this.prestigeIcons[level]}\n${stg.total}/${this.prestigeLevels[level]}\n`;
+
+        const len = 8;
+        const filled = Math.floor(len * stg.total / this.prestigeLevels[level]);
+        state.shareText += `${"🟪".repeat(filled)}${"⬜".repeat(len - filled)}\n`;
+
+        state.shareText += "\n";
     }
 }
 

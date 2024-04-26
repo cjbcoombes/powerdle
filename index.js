@@ -1,6 +1,6 @@
 
 const day = Math.floor(Date.now() / (1000 * 60 * 60 * 24)) - 19838;
-const expectedGameVersion = 0;
+const expectedGameVersion = 2;
 const prevState = localStorage.getItem("powerdle-state");
 let hasPrev = !!prevState;
 let gameState = null;
@@ -59,7 +59,7 @@ gameState.popups = {
             gameState.popups.overlayBox.appendChild(evt);
             gameState.popups.overlayBox.style["display"] = "block";
             if (shaded) {
-                overlayBox.classList.add("shaded");
+                gameState.popups.overlayBox.classList.add("shaded");
             }
         }
         gameState.popups.overlayElems.push(evt)
@@ -72,12 +72,17 @@ gameState.popups = {
     overlayElems: []
 };
 
-const expectedStatsVersion = 1;
+const expectedStatsVersion = 3;
 if (gameState.stats.statsVersion != expectedStatsVersion) {
     gameState.stats = {
         statsVersion: expectedStatsVersion 
     };
 }
+
+const resetSaved = () => {
+    localStorage.removeItem("powerdle-stats");
+    localStorage.removeItem("powerdle-state");
+};
 
 console.log(gameState);
 
@@ -115,16 +120,10 @@ for (let i = 0; i < NUM_ROWS + 1; i++) {
     cellContainer.classList.add("cell-container", "display");
 
     const leftContainer = document.createElement("td");
-    leftContainer.classList.add("row-popup-box-container", "left");
-    const leftBox = document.createElement("div");
-    leftBox.classList.add("row-popup-box");
-    leftContainer.appendChild(leftBox);
+    leftContainer.classList.add("row-popup-box-container", "left", "scale-font");
     
     const rightContainer = document.createElement("td");
-    rightContainer.classList.add("row-popup-box-container", "right");
-    const rightBox = document.createElement("div");
-    rightBox.classList.add("row-popup-box");
-    rightContainer.appendChild(rightBox);
+    rightContainer.classList.add("row-popup-box-container", "right", "scale-font");
 
     const rowData = [];
     if (i != NUM_ROWS) {
@@ -176,15 +175,14 @@ for (let i = 0; i < NUM_ROWS + 1; i++) {
 
         }
         if (!hasPrev) gameState.rowData.push(rowData);
-        gameState.popups.rowBoxes.push({left: leftBox, right:rightBox});
+
+        gameState.popups.rowBoxes.push({left: leftContainer, right:rightContainer});
     } else {
-        gameState.popups.infoBoxes.left = leftBox;
-        gameState.popups.infoBoxes.right = rightBox;
-        const box = document.createElement("div");
-        box.classList.add("row-popup-box");
-        cellContainer.appendChild(box);
+        gameState.popups.infoBoxes.left = leftContainer;
+        gameState.popups.infoBoxes.right = rightContainer;
+        cellContainer.classList.add("scale-font");
         
-        gameState.popups.infoBoxes.center = box;
+        gameState.popups.infoBoxes.center = cellContainer;
     }
 
     row.appendChild(leftContainer);
@@ -267,8 +265,6 @@ localStorage.setItem("powerdle-state", JSON.stringify(gameState));
 const renderShare = () => {
     const box = document.createElement("div");
     box.classList.add("center-box", "share-box");
-    gameState.popups.overlayBox.style["display"] = "block";
-    gameState.popups.overlayBox.classList.add("shaded");
     
     const textBox = document.createElement("div");
     textBox.innerText = gameState.shareText;
@@ -286,12 +282,12 @@ const renderShare = () => {
     button.classList.add("share-button");
     button.innerText = "Close";
     button.addEventListener("click", e => {
-        gameState.popups.overlayBox.removeChild(box);
-        gameState.popups.overlayBox.style["display"] = "none";
+        box.style["display"] = "none";
+        gameState.popups.overlayTimers[0] = 0;
     });
     box.appendChild(button);
 
-    gameState.popups.overlayBox.appendChild(box);
+    gameState.popups.addToOverlay(box, Infinity, true);
 };
 
 if (gameState.gameOver) {

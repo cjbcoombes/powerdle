@@ -3,6 +3,7 @@ body {
     font-family: "Anton", sans-serif;
     font-weight: 400;
     font-style: normal;
+    color: white;
 }
 
 body, body * {
@@ -77,7 +78,7 @@ body, body * {
 
 .row-popup-box-container {
     /* border: 2px solid white; */
-    width: calc(49vw - min(160px, 35vw));
+    width: calc(49% - min(160px, 35vw));
 }
 
 @media (max-width: 550px) {
@@ -85,16 +86,12 @@ body, body * {
         width: 0;
     }
     .row-popup-box-container.right {
-        width: calc(100vw - min(320px, 70vw));
+        width: calc(99% - min(320px, 70vw));
     }
 }
 
-.row-popup-box {
-    display: inline-block;
-    height: min(50px, 10vw);
-    color: white;
+.scale-font {
     font-size: min(23px, 5vw);
-    /* border: 2px solid white; */
 }
 
 .letter {
