@@ -50,3 +50,88 @@
     /* width: 25%; */
     background-color: blueviolet;
 }
+
+.hit-popup-box {
+    white-space: nowrap;
+}
+
+.hit-popup-text {
+    font-size: 3em;
+}
+
+.hit-popup-emoji {
+    font-size: 4em;
+}
+
+@keyframes hit-slide-anim {
+    0% {top: -50%;}
+    100% {top: 150%;}
+}
+
+@keyframes hit-slam-anim {
+    0% {
+        opacity: 0%; 
+        transform: translate(-50%, -50%) scale(200%) rotate(360deg);
+    }
+    
+    20% {
+        opacity: 100%;
+        transform: translate(-50%, -50%) scale(100%) rotate(0deg);
+    }
+
+    40% {
+        opacity: 100%;
+        transform: translate(-50%, -50%) scale(100%) rotate(0deg);
+    }
+    
+    100% {
+        opacity: 0%;
+        transform: translate(-50%, -50%) scale(50%) rotate(0deg);
+    }
+}
+
+@keyframes hit-bounce-anim {
+    0% {
+        /* opacity: 0%;  */
+        transform: translate(-50%, -50%) scale(0%);
+    }
+
+/*     
+    25% {
+        opacity: 100%;
+        transform: translate(-50%, -50%) scale(75%);
+    } */
+
+    100% {
+        /* opacity: 100%; */
+        transform: translate(-50%, -50%) scale(150%);
+    }
+/*     
+    75% {
+        opacity: 100%;
+        transform: translate(-50%, -50%) scale(75%);
+    } */
+}
+
+.hit-slide {
+    animation-name: hit-slide-anim;
+    animation-timing-function: linear;
+    animation-duration: 6s;
+    animation-fill-mode: both;
+}
+
+.hit-slam {
+    animation-name: hit-slam-anim;
+    animation-timing-function: linear;
+    animation-duration: 4s;
+    animation-fill-mode: both;
+}
+
+.hit-bounce {
+    animation-name: hit-bounce-anim;
+    animation-timing-function: cubic-bezier(0,0,0.4,1);
+    animation-duration: 2s;
+    animation-fill-mode: both;
+    animation-direction: alternate;
+    animation-iteration-count: 2;
+}

@@ -119,3 +119,110 @@ class BannedLetterLetterTrait extends LetterTrait {
 
     }
 }
+
+class InfoScoreTrait extends Trait {
+    /*
+    New grays +10, old +0
+    New greens +100, old +0
+    New yellow +50, new spot +30, old +0
+
+    [0,50) : Boring
+    [50,250) : nothing
+    [250,350) : Epic Strike!
+    [350,500) : Critical Hit!
+    500 : Knockout!
+
+    Boring 🥱
+    Epic Strike!⚡️
+    Critical Hit! ☄️
+    Knockout! 🥊🤜😵
+    */
+
+    makeMessage(state, emoji, color, text, anim, time) {
+        const box = document.createElement("div");
+        box.classList.add("center-box", "scale-font", "hit-popup-box", anim);
+        box.style["color"] = color;
+
+        const emojiBox = document.createElement("span");
+        emojiBox.innerText = emoji;
+        emojiBox.classList.add("hit-popup-emoji");
+
+        const textBox = document.createElement("span");
+        textBox.innerText = text;
+        textBox.classList.add("hit-popup-text");
+
+        box.appendChild(emojiBox);
+        box.appendChild(textBox);
+
+        state.popups.addToOverlay(box, time, false);
+    }
+
+    onStart(state) {
+        const stg = super.onStart(state);
+
+        stg.grays = [];
+        stg.yellows = [];
+        stg.yellowCols = ROW_BASE.map(i => []);
+        stg.greenCols = ROW_BASE.map(i => false);
+        stg.rowMessages = [];
+    }
+
+    onReveal(state, row, judge) {
+        const stg = this.stg(state);
+        let score = 0;
+        let someHidden = false;
+
+        for (let i = 0; i < NUM_COLS; i++) {
+            if (row[i].judge.hidden) {
+                someHidden = true;
+                continue;
+            }
+
+            if (row[i].judge.correctness == GUESS_TYPES.GRAY) {
+                if (!stg.grays.includes(row[i].judge.guess)) {
+                    score += 10;
+                    stg.grays.push(row[i].judge.guess);
+                }
+            } else if (row[i].judge.correctness == GUESS_TYPES.YELLOW) {
+                if (!stg.yellows.includes(row[i].judge.guess)) {
+                    score += 50;
+                    stg.yellows.push(row[i].judge.guess);
+                    stg.yellowCols[i].push(row[i].judge.guess);
+                } else if (!stg.yellowCols[i].includes(row[i].judge.guess)) {
+                    score += 30;
+                    stg.yellowCols[i].push(row[i].judge.guess);
+                }
+            } else if (row[i].judge.correctness == GUESS_TYPES.GREEN) {
+                if (!stg.greenCols[i]) {
+                    score += 100;
+                    stg.greenCols[i] = true;
+                }
+            }
+        }
+
+        if (someHidden) return;
+
+        if (score < 50) {
+            this.makeMessage(state, "🥱", "yellow", "Boring...", "hit-slide", 6000);
+            stg.rowMessages.push("🥱 Boring...");
+        } else if (score < 250) {
+            stg.rowMessages.push(null);
+        } else if (score < 350) {
+            this.makeMessage(state, "⚡️", "orange", "Epic Strike!", "hit-bounce", 4000);
+            stg.rowMessages.push("⚡️ Epic Strike!");
+        } else if (score < 500) {
+            this.makeMessage(state, "☄️", "red", "Critical Hit!", "hit-slam", 4000);
+            stg.rowMessages.push("☄️ Critical Hit!");
+        } else {
+            this.makeMessage(state, "🤜😵", "red", "Knockout!", "hit-slam", 4000);
+            stg.rowMessages.push("🤜😵 Knockout!");
+        }
+    }
+
+    onShareRow(state, row) {
+        const stg = this.stg(state);
+        if (stg.rowMessages[row]) {
+            state.shareText += stg.rowMessages[row] + " ";
+        }
+    }
+}

@@ -96,6 +96,7 @@ const allTraits = [
     new ReusedGrayTrait(),
     new NewGreenTrait(),
     new BannedLetterTrait(),
+    new InfoScoreTrait(),
 
     new CurrencyTrait(), 
     new StandardPointsTrait() // Important that this is after anything that adds points or creates side popups
@@ -421,7 +422,24 @@ setInterval(() => {
 
         //
 
-        if (gameState.popups.overlayTimers.length <= 0) continue;
+        for (let j = 0; j < NUM_COLS; j++) {
+            const cell = gameState.rowData[i][j];
+            if (cell.popups.timers.length <= 0) continue;
+            cell.popups.timers[0] -= 50;
+            
+            if (cell.popups.timers[0] <= 0) {
+                cell.popups.timers.shift();
+                cell.popups.elems.shift();
+
+                cell.popups.box.innerHTML = "";
+                if (cell.popups.elems.length != 0) {
+                    cell.popups.box.appendChild(cell.popups.elems[0]);
+                }
+            }
+        }
+    }
+
+    if (gameState.popups.overlayTimers.length > 0) {
         gameState.popups.overlayTimers[0] -= 50;
         
         if (gameState.popups.overlayTimers[0] <= 0) {
@@ -438,24 +456,6 @@ setInterval(() => {
                 }
             } else {
                 gameState.popups.overlayBox.style["display"] = "none";
-            }
-        }
-
-        //
-
-        for (let j = 0; j < NUM_COLS; j++) {
-            const cell = gameState.rowData[i][j];
-            if (cell.popups.timers.length <= 0) continue;
-            cell.popups.timers[0] -= 50;
-            
-            if (cell.popups.timers[0] <= 0) {
-                cell.popups.timers.shift();
-                cell.popups.elems.shift();
-
-                cell.popups.box.innerHTML = "";
-                if (cell.popups.elems.length != 0) {
-                    cell.popups.box.appendChild(cell.popups.elems[0]);
-                }
             }
         }
     }

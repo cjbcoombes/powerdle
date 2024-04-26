@@ -54,4 +54,4 @@ const makeOrdinal = num => {
 
 const withDef = (val, def) => val == undefined ? def : val;
 
-const signNum = num => (num > 0 ? "+" : "") + num;
+const signNum = num => (num >= 0 ? "+" : "") + num;
