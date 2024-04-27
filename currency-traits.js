@@ -20,6 +20,7 @@ class CurrencyTrait extends Trait {
 
     onReload(state) {
         const stg = super.onReload(state);
+        stg.updateQuantities = this.updateQuantities.bind(this);
         
         const box = document.createElement("span");
         box.classList.add("currency-box");
@@ -114,27 +115,20 @@ class CurrencyTrait extends Trait {
         }
     }
 
-    onReveal(state, row, judge) {
+    updateQuantities(state, gems, coins, gears) {
         const stg = this.stg(state);
-        const stat = this.stat(state);
 
-        let dropGems = stg.deltaGems;
-        let diffGems = Math.max(1, Math.floor(dropGems / 100));
-        stg.totalGems += stg.deltaGems;
-        stg.deltaGems = 0;
-        stat.savedGems = stg.totalGems;
+        let dropGems = gems;
+        let diffGems = Math.max(1, Math.floor(dropGems / 60));
+        stg.totalGems += gems;
 
-        let dropCoins = stg.deltaCoins;
-        let diffCoins = Math.max(1, Math.floor(dropCoins / 100));
-        stg.totalCoins += stg.deltaCoins;
-        stg.deltaCoins = 0;
-        stat.savedCoins = stg.totalCoins;
+        let dropCoins = coins;
+        let diffCoins = Math.max(1, Math.floor(dropCoins / 60));
+        stg.totalCoins += coins;
 
-        let dropGears = stg.deltaGears;
-        let diffGears = Math.max(1, Math.floor(dropGears / 10));
-        stg.totalGears += stg.deltaGears;
-        stg.deltaGears = 0;
-        stat.savedGears = stg.totalGears;
+        let dropGears = gears;
+        let diffGears = Math.max(1, Math.floor(dropGears / 30));
+        stg.totalGears += gears;
 
         clearInterval(this.intId);
         this.intId = setInterval(() => {
@@ -152,6 +146,23 @@ class CurrencyTrait extends Trait {
 
             if (dropGems <= 0 && dropCoins <= 0 && dropGears <= 0) clearInterval(this.intId);
         }, 100);
+    }
+
+    onReveal(state, row, judge) {
+        const stg = this.stg(state);
+
+        this.updateQuantities(state, stg.deltaGems, stg.deltaCoins, stg.deltaGears);
+        stg.deltaGems = 0;
+        stg.deltaCoins = 0;
+        stg.deltaGears = 0;
+    }
+
+    onSave(state) {
+        const stat = this.stat(state);
+        const stg = this.stg(state);
+        stat.savedGems = stg.totalGems;
+        stat.savedCoins = stg.totalCoins;
+        stat.savedGears = stg.totalGears;
     }
 
     onShareCell(state, cell) {
@@ -172,8 +183,8 @@ class CurrencyTrait extends Trait {
     onShare(state) {
         const stg = this.stg(state);
 
-        state.shareText += `💎 ${stg.totalGems} (+${stg.totalGems - stg.savedGems})\n`;
-        state.shareText += `🪙 ${stg.totalCoins} (+${stg.totalCoins - stg.savedCoins})\n`;
-        state.shareText += `⚙️ ${stg.totalGears} (+${stg.totalGears - stg.savedGears})\n\n`;
+        state.shareText += `💎${stg.totalGems}(+${stg.totalGems - stg.savedGems})  `;
+        state.shareText += `🪙${stg.totalCoins}(+${stg.totalCoins - stg.savedCoins})  `;
+        state.shareText += `⚙️${stg.totalGears}(+${stg.totalGears - stg.savedGears})`;
     }
 }

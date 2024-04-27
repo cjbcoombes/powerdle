@@ -72,12 +72,21 @@ gameState.popups = {
     overlayElems: []
 };
 
+gameState.appsTable = document.getElementById("apps");
+
 const expectedStatsVersion = 3;
 if (gameState.stats.statsVersion != expectedStatsVersion) {
     gameState.stats = {
         statsVersion: expectedStatsVersion 
     };
 }
+
+gameState.save = () => {
+    allTraits.forEach(t => t.onSave(gameState));
+    allLetterTraits.forEach(t => t.onSave(gameState));
+    localStorage.setItem("powerdle-stats", JSON.stringify(gameState.stats));
+    localStorage.setItem("powerdle-state", JSON.stringify(gameState));
+};
 
 const resetSaved = () => {
     localStorage.removeItem("powerdle-stats");
@@ -97,6 +106,7 @@ const allTraits = [
     new NewGreenTrait(),
     new BannedLetterTrait(),
     new InfoScoreTrait(),
+    new PetCollectionTrait(),
     new OptimalComparisonTrait(),
 
     new CurrencyTrait(), 
@@ -261,14 +271,13 @@ if (hasPrev) {
 
 // -----------
 
-localStorage.setItem("powerdle-stats", JSON.stringify(gameState.stats));
-localStorage.setItem("powerdle-state", JSON.stringify(gameState));
+gameState.save();
 
 const renderShare = () => {
     const box = document.createElement("div");
     box.classList.add("center-box", "share-box");
     
-    const textBox = document.createElement("div");
+    const textBox = document.createElement("pre");
     textBox.innerText = gameState.shareText;
     box.appendChild(textBox);
     
@@ -399,8 +408,7 @@ const keyEvent = key => {
         renderShare();
     }
 
-    localStorage.setItem("powerdle-stats", JSON.stringify(gameState.stats));
-    localStorage.setItem("powerdle-state", JSON.stringify(gameState));
+    gameState.save();
 }
 
 document.body.addEventListener("keydown", e => {

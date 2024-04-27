@@ -39,6 +39,10 @@ class Trait {
         return this.stg(cell);
     }
 
+    onSave(state) {
+
+    }
+
     onPreReveal(state, row, judge) {
 
     }
@@ -52,7 +56,7 @@ class Trait {
     }
 
     onPreShare(state) {
-        
+
     }
 
     onShare(state) {
@@ -317,7 +321,6 @@ class StandardPointsTrait extends Trait {
 
         let drop1 = stg.delta;
         stg.total += stg.delta;
-        this.stat(state).saved = stg.total;
         stg.rowDeltas.push(stg.delta);
         stg.delta = 0;
 
@@ -339,13 +342,17 @@ class StandardPointsTrait extends Trait {
                 currLevel++;
             }
 
-            if (drop1 <= 0 && currLevel >= tgtLevel) {
+            if (drop1 <= 0 && currLevel >= tgtLevel && currVal >= this.prestigeLevels[currLevel]) {
                 clearInterval(this.intId);
             }
 
             stg.element.innerText = stg.total - drop1;
             this.showPrestige(stg, currLevel, currVal, upperVal, this.prestigeLevels[currLevel]);
         }, 10);
+    }
+
+    onSave(state) {
+        this.stat(state).saved = this.stg(state).total;
     }
 
     onShareRow(state, row) {
@@ -426,6 +433,10 @@ class LetterTrait {
     }
 
     onReveal(state, row, judge) {
+
+    }
+
+    onSave(state) {
 
     }
 }

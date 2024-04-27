@@ -139,3 +139,107 @@
 .opt-comp-text {
     font-size: 0.7em;
 }
+
+.pet-text {
+    text-align: center;
+}
+
+.pet-display-box {
+    display: inline-block;
+    background-color: #111;
+    border: 2px solid yellow;
+    padding: 5px;
+    margin: 5px;
+}
+
+.pet-shop-box {
+    display: inline-block;
+    background-color: #111;
+    border: 2px solid red;
+    padding: 5px;
+    margin: 5px;
+}
+
+.pet-shop-button {
+    display: inline-block;
+    width: 2em;
+    margin: 5px;
+    vertical-align: middle;
+    border-radius: 10px;
+    background-color: #777;
+    color: white;
+    padding: 0 0 5px 0;
+}
+
+.pet-shop-button:hover {
+    cursor: pointer;
+}
+
+.pet-shop-owned {
+    display: inline-block;
+    width: 2em;
+    margin: 5px;
+    vertical-align: middle;
+    border-radius: 10px;
+    background-color: #777;
+    color: red;
+    opacity: 25%;
+    padding: 0 0 5px 0;
+}
+
+.pet-shop-owned div, .pet-shop-button div {
+    display: inline-block;
+    font-size: 0.5em;
+    vertical-align: middle;
+    margin: 0;
+}
+
+.pet-shop-button div:nth-child(1) {
+    font-size: 0.7em;
+}
+
+.pet-box {
+    display: inline-block;
+    width: 2em;
+    height: 2em;
+    background-color: #222;
+    border: 2px solid gray;
+    margin: 5px;
+    vertical-align: middle;
+}
+
+.pet-box:not(.pet-none):not(.pet-shaded):hover {
+    cursor: pointer;
+}
+
+.pet-none {
+    border-color: darkslategray;
+}
+
+.pet-common {
+    border-color: gray;
+}
+
+.pet-rare {
+    border-color: rgb(45, 131, 188);
+}
+
+.pet-rare:not(.pet-shaded) {
+    box-shadow: 0 0 10px rgb(45, 131, 188);
+}
+
+.pet-epic {
+    border-color: #A0A;
+}
+
+.pet-epic:not(.pet-shaded) {
+    box-shadow: 0 0 10px #A0A;
+}
+
+.pet-icon {
+    font-size: 1.2em;
+}
+
+.pet-shaded {
+    opacity: 50%;
+}
