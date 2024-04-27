@@ -1,6 +1,6 @@
 
 const day = Math.floor(Date.now() / (1000 * 60 * 60 * 24)) - 19838;
-const expectedGameVersion = 2;
+const expectedGameVersion = 3;
 const prevState = localStorage.getItem("powerdle-state");
 let hasPrev = !!prevState;
 let gameState = null;
@@ -74,7 +74,7 @@ gameState.popups = {
 
 gameState.appsTable = document.getElementById("apps");
 
-const expectedStatsVersion = 3;
+const expectedStatsVersion = 4;
 if (gameState.stats.statsVersion != expectedStatsVersion) {
     gameState.stats = {
         statsVersion: expectedStatsVersion 
