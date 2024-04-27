@@ -261,7 +261,6 @@ class PetCollectionTrait extends Trait {
             state.randAt(9644, animals.length),
             state.randAt(2285, animals.length)
         ];
-        pets[0] = 97;
         while (pets[1] == pets[0]) pets[1] = (pets[1] + 1) % animals.length;
         while (pets[2] == pets[0] || pets[2] == pets[1]) pets[2] = (pets[2] + 1) % animals.length;
 
