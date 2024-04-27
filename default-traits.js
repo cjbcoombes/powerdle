@@ -246,7 +246,7 @@ class StandardPointsTrait extends Trait {
         box.appendChild(value);
 
         stg.element = value;
-        state.popups.infoBoxes.right.appendChild(box);
+        state.popups.infoBoxes.right.insertBefore(box, state.popups.infoBoxes.right.firstChild);
 
         for (let i = 0; i < stg.rowDeltas.length; i++) {
             const popup = document.createElement("span");

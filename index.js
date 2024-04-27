@@ -97,6 +97,7 @@ const allTraits = [
     new NewGreenTrait(),
     new BannedLetterTrait(),
     new InfoScoreTrait(),
+    new OptimalComparisonTrait(),
 
     new CurrencyTrait(), 
     new StandardPointsTrait() // Important that this is after anything that adds points or creates side popups

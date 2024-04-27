@@ -121,6 +121,7 @@ class BannedLetterLetterTrait extends LetterTrait {
 }
 
 class InfoScoreTrait extends Trait {
+    name = "infoscore"
     /*
     New grays +10, old +0
     New greens +100, old +0
@@ -224,5 +225,50 @@ class InfoScoreTrait extends Trait {
         if (stg.rowMessages[row]) {
             state.shareText += stg.rowMessages[row] + " ";
         }
+    }
+}
+
+class OptimalComparisonTrait extends Trait {
+    name = "optimalcomparison"
+    tmtId = -1;
+
+    onStart(state) {
+        super.onStart(state);
+        this.onReload(state);
+    }
+
+    onReload(state) {
+        const stg = super.onReload(state);
+        stg.optComp = state.turn == 0 ? 0 : state.randAt(3219 + state.turn * 11, 101);
+
+        const box = document.createElement("div");
+        box.classList.add("opt-comp-text");
+        const word = document.createElement("span");
+        word.innerText = "Optimal Comparison: ";
+        box.appendChild(word);
+        const value = document.createElement("span");
+        value.innerText = `${stg.optComp}%`;
+        box.appendChild(value);
+
+        const spinner = document.createElement("div");
+        spinner.classList.add("lds-spinner");
+        spinner.innerHTML = "<div></div><div></div><div></div><div></div><div></div><div></div><div></div><div></div><div></div><div></div><div></div><div></div>";
+
+        stg.element = value;
+        stg.spinner = spinner;
+        state.popups.infoBoxes.right.appendChild(box);
+    }
+
+    onReveal(state, row, judge) {
+        const stg = this.stg(state);
+        
+        stg.optComp = state.randAt(3219 + (state.turn + 1) * 11, 101);
+        stg.element.innerHTML = "";
+        stg.element.appendChild(stg.spinner);
+
+        clearTimeout(this.tmtId);
+        this.tmtId = setTimeout(() => {
+            stg.element.innerText = `${stg.optComp}%`;
+        }, 4000 + Math.random() * 10000);
     }
 }

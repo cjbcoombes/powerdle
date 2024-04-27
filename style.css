@@ -81,7 +81,7 @@ body, body * {
     width: calc(49% - min(160px, 35vw));
 }
 
-@media (max-width: 550px) {
+@media (max-width: 700px) {
     .row-popup-box-container.left {
         width: 0;
     }
