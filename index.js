@@ -382,6 +382,8 @@ const keyEvent = key => {
 
     if (gameState.gameOver) {
         gameState.shareText = `Powerdle #${gameState.day} ${gameState.won ? gameState.turn : 'X'}/6\n\n`;
+
+        allTraits.forEach(t => t.onPreShare(gameState));
         for (let i = 0; i < NUM_ROWS; i++) {
             for (let j = 0; j < NUM_COLS; j++) {
                 allTraits.forEach(t => t.onShareCell(gameState, gameState.rowData[i][j]));

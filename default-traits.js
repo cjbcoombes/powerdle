@@ -51,6 +51,10 @@ class Trait {
         
     }
 
+    onPreShare(state) {
+        
+    }
+
     onShare(state) {
 
     }

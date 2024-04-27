@@ -271,4 +271,9 @@ class OptimalComparisonTrait extends Trait {
             stg.element.innerText = `${stg.optComp}%`;
         }, 4000 + Math.random() * 10000);
     }
+
+    onPreShare(state) {
+        const stg = this.stg(state);
+        state.shareText += `Optimal Comparison: ${stg.optComp}%\n`;
+    }
 }
