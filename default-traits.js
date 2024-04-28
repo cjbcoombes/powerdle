@@ -235,8 +235,9 @@ class StandardPointsTrait extends Trait {
     onStart(state) {
         const stg = super.onStart(state);
         stg.saved = withDef(this.stat(state).saved, 0);
-        stg.total = 0;
+        stg.total = stg.saved;
         stg.delta = 0;
+        stg.dayDelta = 0;
         stg.rowDeltas = [];
         
         this.onReload(state);
@@ -250,7 +251,7 @@ class StandardPointsTrait extends Trait {
         word.innerText = "Total: ";
         box.appendChild(word);
         const value = document.createElement("span");
-        value.innerText = stg.total;
+        value.innerText = stg.dayDelta;
         box.appendChild(value);
 
         stg.element = value;
@@ -321,6 +322,7 @@ class StandardPointsTrait extends Trait {
 
         let drop1 = stg.delta;
         stg.total += stg.delta;
+        stg.dayDelta += stg.delta;
         stg.rowDeltas.push(stg.delta);
         stg.delta = 0;
 
@@ -346,7 +348,7 @@ class StandardPointsTrait extends Trait {
                 clearInterval(this.intId);
             }
 
-            stg.element.innerText = stg.total - drop1;
+            stg.element.innerText = stg.dayDelta - drop1;
             this.showPrestige(stg, currLevel, currVal, upperVal, this.prestigeLevels[currLevel]);
         }, 10);
     }
@@ -368,7 +370,7 @@ class StandardPointsTrait extends Trait {
         // 🟪⬜
         const stg = this.stg(state);
 
-        state.shareText += `Total Points: ${signNum(this.stg(state).total)}\n\n`;
+        state.shareText += `Total Points: ${signNum(stg.dayDelta)}\n\n`;
 
         const level = this.calcLevel(stg.total);
         state.shareText += `Prestige Level:${this.prestigeIcons[level]}\n${stg.total}/${this.prestigeLevels[level]}\n`;
