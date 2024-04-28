@@ -201,7 +201,10 @@ class InfoScoreTrait extends Trait {
             }
         }
 
-        if (someHidden) return;
+        if (someHidden) {
+            stg.rowMessages.push(null);
+            return;
+        }
 
         if (score < 50) {
             this.makeMessage(state, "🥱", "yellow", "Boring...", "hit-slide", 6000);
