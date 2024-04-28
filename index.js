@@ -1,5 +1,7 @@
 
-const day = Math.floor(Date.now() / (1000 * 60 * 60 * 24)) - 19838;
+const day = Math.floor(
+    (Date.now() - (new Date().getTimezoneOffset()) * 60 * 1000)
+    / (1000 * 60 * 60 * 24)) - 19838;
 const expectedGameVersion = 3;
 const prevState = localStorage.getItem("powerdle-state");
 let hasPrev = !!prevState;
