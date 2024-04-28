@@ -109,6 +109,7 @@ const allTraits = [
     new NewGreenTrait(),
     new BannedLetterTrait(),
     new InfoScoreTrait(),
+    new StreakTrait(),
     new PetCollectionTrait(),
     new OptimalComparisonTrait(),
 

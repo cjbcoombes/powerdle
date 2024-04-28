@@ -200,6 +200,43 @@ class CorrectnessColoringTrait extends Trait {
     }
 }
 
+class StreakTrait extends Trait {
+    name = "streak"
+
+    onStart(state) {
+        const stg = super.onStart(state);
+        const stat = this.stat(state);
+
+        stg.streak = withDef(stat.streak, 0);
+        stg.lastDayWon = withDef(stat.lastDayWon, -2);
+
+        if (stg.lastDayWon < state.day - 1) {
+            stg.streak = 0;
+        }
+    }
+
+    onReveal(state, row, judge) {
+        const stg = this.stg(state);
+
+        if (judge.allCorrect) {
+            stg.streak++;
+            stg.lastDayWon = state.day;    
+        }
+    }
+
+    onSave(state) {
+        const stg = this.stg(state);
+        const stat = this.stat(state);
+
+        stat.streak = stg.streak;
+        stat.lastDayWon = stg.lastDayWon;
+    }
+
+    onPreShare(state) {
+        state.shareText += `Streak: ${this.stg(state).streak}\n`;
+    }
+}
+
 class StandardPointsTrait extends Trait {
     name = "points"
     intId = -1
@@ -235,6 +272,12 @@ class StandardPointsTrait extends Trait {
     onStart(state) {
         const stg = super.onStart(state);
         stg.saved = withDef(this.stat(state).saved, 0);
+        stg.mult = this.stg(state, "streak").streak;
+        console.log(stg.mult);
+        stg.mult = 1 + Math.log2(stg.mult + 1) / 4;
+        console.log(stg.mult);
+        stg.mult = Math.round(stg.mult * 100) / 100;
+        console.log(stg.mult);
         stg.total = stg.saved;
         stg.delta = 0;
         stg.dayDelta = 0;
@@ -247,14 +290,21 @@ class StandardPointsTrait extends Trait {
         const stg = super.onReload(state);
 
         const box = document.createElement("div");
-        const word = document.createElement("span");
+        let word = document.createElement("span");
         word.innerText = "Total: ";
         box.appendChild(word);
         const value = document.createElement("span");
         value.innerText = stg.dayDelta;
         box.appendChild(value);
 
+        const box2 = document.createElement("div");
+        box2.classList.add("opt-comp-text");
+        word = document.createElement("span");
+        word.innerText = `Streak Multiplier: x${stg.mult.toFixed(2)}`;
+        box2.appendChild(word);
+
         stg.element = value;
+        state.popups.infoBoxes.right.insertBefore(box2, state.popups.infoBoxes.right.firstChild);
         state.popups.infoBoxes.right.insertBefore(box, state.popups.infoBoxes.right.firstChild);
 
         for (let i = 0; i < stg.rowDeltas.length; i++) {
@@ -320,10 +370,10 @@ class StandardPointsTrait extends Trait {
         popup.classList.add("fade-in");
         state.popups.addToRow(popup, Infinity);
 
-        let drop1 = stg.delta;
-        stg.total += stg.delta;
-        stg.dayDelta += stg.delta;
-        stg.rowDeltas.push(stg.delta);
+        let drop1 = Math.floor(stg.delta * stg.mult);
+        stg.total += drop1;
+        stg.dayDelta += drop1;
+        stg.rowDeltas.push(drop1);
         stg.delta = 0;
 
         const tgt = stg.total;
@@ -344,7 +394,7 @@ class StandardPointsTrait extends Trait {
                 currLevel++;
             }
 
-            if (drop1 <= 0 && currLevel >= tgtLevel && currVal >= this.prestigeLevels[currLevel]) {
+            if (drop1 <= 0 && currLevel >= tgtLevel && currVal >= tgt) {
                 clearInterval(this.intId);
             }
 
