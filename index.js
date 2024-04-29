@@ -69,6 +69,22 @@ gameState.popups = {
         gameState.popups.overlayTimers.push(time);
         gameState.popups.overlayShaded.push(shaded);
     },
+    closeTopOverlay: () => {
+        gameState.popups.overlayTimers.shift();
+        gameState.popups.overlayElems.shift();
+        gameState.popups.overlayShaded.shift();
+
+        gameState.popups.overlayBox.innerHTML = "";
+        gameState.popups.overlayBox.classList.remove("shaded");
+        if (gameState.popups.overlayElems.length != 0) {
+            gameState.popups.overlayBox.appendChild(gameState.popups.overlayElems[0]);
+            if (gameState.popups.overlayShaded[0]) {
+                gameState.popups.overlayBox.classList.add("shaded");
+            }
+        } else {
+            gameState.popups.overlayBox.style["display"] = "none";
+        }
+    },
     overlayBox: document.getElementById("overlay"),
     overlayTimers: [],
     overlayShaded: [],
@@ -112,6 +128,7 @@ const allTraits = [
     new StreakTrait(),
     new PetCollectionTrait(),
     new OptimalComparisonTrait(),
+    new DailyGiftTrait(),
 
     new CurrencyTrait(), 
     new StandardPointsTrait() // Important that this is after anything that adds points or creates side popups
@@ -298,7 +315,7 @@ const renderShare = () => {
     button.innerText = "Close";
     button.addEventListener("click", e => {
         box.style["display"] = "none";
-        gameState.popups.overlayTimers[0] = 0;
+        gameState.popups.closeTopOverlay();
     });
     box.appendChild(button);
 
@@ -458,20 +475,7 @@ setInterval(() => {
         gameState.popups.overlayTimers[0] -= 50;
         
         if (gameState.popups.overlayTimers[0] <= 0) {
-            gameState.popups.overlayTimers.shift();
-            gameState.popups.overlayElems.shift();
-            gameState.popups.overlayShaded.shift();
-
-            gameState.popups.overlayBox.innerHTML = "";
-            gameState.popups.overlayBox.classList.remove("shaded");
-            if (gameState.popups.overlayElems.length != 0) {
-                gameState.popups.overlayBox.appendChild(gameState.popups.overlayElems[0]);
-                if (gameState.popups.overlayShaded[0]) {
-                    gameState.popups.overlayBox.classList.add("shaded");
-                }
-            } else {
-                gameState.popups.overlayBox.style["display"] = "none";
-            }
+            gameState.popups.closeTopOverlay();
         }
     }
 }, 50);

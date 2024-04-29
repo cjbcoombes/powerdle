@@ -213,6 +213,8 @@ class StreakTrait extends Trait {
         if (stg.lastDayWon < state.day - 1) {
             stg.streak = 0;
         }
+
+        stg.startStreak = stg.streak;
     }
 
     onReveal(state, row, judge) {
@@ -273,11 +275,8 @@ class StandardPointsTrait extends Trait {
         const stg = super.onStart(state);
         stg.saved = withDef(this.stat(state).saved, 0);
         stg.mult = this.stg(state, "streak").streak;
-        console.log(stg.mult);
         stg.mult = 1 + Math.log2(stg.mult + 1) / 4;
-        console.log(stg.mult);
         stg.mult = Math.round(stg.mult * 100) / 100;
-        console.log(stg.mult);
         stg.total = stg.saved;
         stg.delta = 0;
         stg.dayDelta = 0;

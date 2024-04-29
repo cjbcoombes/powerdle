@@ -23,7 +23,7 @@ body, body * {
     left: 0;
     width: 100%;
     height: 100%;
-    z-index: 2000;
+    z-index: 1;
 }
 
 #overlay.shaded {
@@ -58,12 +58,13 @@ body, body * {
     display: inline-block;
     width: min(50px, 10vw);
     height: min(50px, 10vw);
-    margin: min(5px, 1vw);
+    margin: min(2px, 0.4vw);
     background-color: black;
     border: 2px solid gray;
     color: white;
     font-size: min(30px, 6vw);
     position: relative;
+    vertical-align: middle;
 }
 
 .cell-popup-box {
@@ -73,7 +74,7 @@ body, body * {
     transform: translateX(-50%) translateY(-50%);
     width: 100%;
     height: 100%;
-    z-index: 1000;
+    z-index: 1;
 }
 
 .row-popup-box-container {
@@ -220,4 +221,36 @@ body, body * {
     animation-name: grow-in-out-anim;
     animation-duration: 2s;
     animation-fill-mode: both;
+}
+
+@keyframes light-ray-anim {
+    0% {
+        transform: rotate(0deg);
+    }
+    100% {
+        transform: rotate(360deg);
+    }
+}
+
+.light-ray-container {
+    position: absolute;
+    width: 0;
+    height: 0;
+    left: 50%;
+    top: 50%;
+}
+
+.light-ray {
+    animation-name: light-ray-anim;
+    animation-iteration-count: infinite;
+    animation-timing-function: linear;
+    transform-origin: 0 0;
+    position: absolute;
+    top: 0;
+    left: 0;
+    fill: url(#Light-Gradient);
+    margin: 0;
+    padding: 0;
+    z-index: -1;
+    font-size: 0;
 }

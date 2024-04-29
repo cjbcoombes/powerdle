@@ -142,6 +142,8 @@
 
 .pet-text {
     text-align: center;
+    max-width: 800px;
+    margin: auto;
 }
 
 .pet-display-box {
@@ -242,4 +244,62 @@
 
 .pet-shaded {
     opacity: 50%;
+}
+
+.gift-box {
+    background-color: #222;
+    padding: 20px;
+    white-space: nowrap;
+    text-align: center;
+}
+
+.gift-box table {
+    margin: auto;
+    font-size: 0.7em;
+}
+
+.gift-box td {
+    padding: 0 0.2em;
+}
+
+.gift-box tr.current-day {
+    font-size: 2em;
+}
+
+.gift-box tr.current-day:hover {
+    cursor: pointer;
+}
+
+.gift-button {
+    padding: 10px;
+    background-color: green;
+    border: none;
+    border-radius: 10px;
+    margin: 0.5em;
+    color: white;
+    font-family: "Anton", sans-serif;
+    font-style: normal;
+    font-size: 0.6em;
+}
+
+.gift-button:hover {
+    cursor: pointer;
+}
+
+.gift-gift {
+    display: inline-block;
+    background-color: rgb(193, 177, 8);
+    border: 3px solid yellow;
+    border-radius: 10px;
+    width: 2em;
+    height: 2em;
+    margin: 0.5em;
+    vertical-align: middle;
+    position: relative;
+    z-index: 0;
+}
+
+.gift-icon {
+    font-size: 1.2em;
+    text-shadow: 0 0 0.2em #444;
 }
