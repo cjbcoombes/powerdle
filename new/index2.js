@@ -21,17 +21,39 @@ const gameState = {
         bottom: null,
         bottomright: null,
         rows: [],
+        cellRows: [],
+        letters: {},
         traits: {}
     },
 
     interactions: {
-        save: null,
+        save: null, // TODO
+        cellHidden: null,
+        rand: {
+            seed: null,
+            at: null
+        },
+        popups: {
+            rows: [],
+            sidebars: []
+        },
         traits: {}
     },
 
     data: {
         version: 0,
-        traits: {}
+        status: {
+            gameOver: false,
+            won: false,
+            day: null,
+            target: null,
+            partial: "",
+            turn: 0
+        },
+        traits: {},
+        rows: [],
+        cellRows: [],
+        letters: {}
     },
 
     stats: {
@@ -39,42 +61,146 @@ const gameState = {
         traits: {}
     }
 };
+const makeCellData = (row, col, component) => {
+    return {
+        row,
+        col,
+        component,
+        status: {
+            letter: null,
+            hidden: false,
+            judged: false,
+            judgeHidden: false,
+            correctness: GUESS_TYPES.NONE
+        },
+        traits: {}
+    }
+};
+const makeLetterData = (letter, component) => {
+    return {
+        letter,
+        component,
+        status: {
+            hidden: false
+        },
+        traits: {}
+    }
+};
+const makeRowData = (row, component) => {
+    return {
+        row,
+        component,
+        status: {
+            hidden: false,
+            judged: false,
+            judgeHidden: false
+        },
+        traits: {}
+    }
+};
+gameState.interactions.rand.at = (k, m = 2**31) => {
+    let seed = gameState.interactions.rand.seed - k;
+    k = k % 100 + 15;
+    while (k > 0) {
+        seed = (1103515245 * seed + 12345) % (2**31);
+        k--;
+    }
+    return seed % m;
+};
+gameState.interactions.cellHidden = (cellorrow, col) => {
+    if (col == undefined) {
+        col = cellorrow.col;
+        cellorrow = cellorrow.row;
+    }
+
+    return gameState.data.rows[cellorrow].status.hidden ||
+        gameState.data.rows[cellorrow].status.judgeHidden ||
+        gameState.data.cellRows[cellorrow][col].status.hidden || 
+        gameState.data.cellRows[cellorrow][col].status.judgeHidden;
+}
+const replacer = (key, val) => {
+    if (["component"].includes(key)) return undefined;
+    return val;
+};
+gameState.interactions.save = () => {
+    traits.all(t => t.onSave(gameState));
+    traits.allLetters(t => t.onSave(gameState));
+    localStorage.setItem("powerdle-state", JSON.stringify(gameState.data, replacer));
+    localStorage.setItem("powerdle-stats", JSON.stringify(gameState.stats, replacer));
+};
+gameState.interactions.resetSaved = () => {
+    localStorage.removeItem("powerdle-state");
+    localStorage.removeItem("powerdle-stats");
+};
+gameState.interactions.popups.addToRow = (...args) => {
+    gameState.interactions.popups.sidebars[gameState.data.status.turn].add(...args);
+};
 
 const traits = {
     normalList: [
-
+        new CorrectnessColoringTrait(),
+        new StandardPointsTrait()
     ],
-    letterList: [],
+    letterList: [
+        new CorrectnessColoringLetterTrait()
+    ],
     normalIndex: {},
-    letterIndex: {}
+    letterIndex: {},
+    all: f => traits.normalList.forEach(f),
+    allLetters: f => traits.letterList.forEach(f)
 };
-traits.normalList.forEach(t => traits.normalIndex[t.name] = t);
+traits.all(t => traits.normalIndex[t.name] = t);
+traits.allLetters(t => traits.letterIndex[t.name] = t);
 
 const mainDisplay = docId("main-display");
 const letterDisplay = docId("letter-display");
 
-const constructGrid = () => {
+const constructGrid = (hasPrev) => {
     for (let i = 0; i < WORDLE_ROWS; i++) {
-        const row = {
-            cells: [],
+        const gridRow = {
             sidebar: null
         };
-        gameState.components.rows.push(row);
+        gameState.components.rows.push(gridRow);
+        const cellRow = [];
+        gameState.components.cellRows.push(cellRow);
+        const popupRow = [];
+        gameState.interactions.popups.rows.push(popupRow);
+
+        let row = [];
+        if (hasPrev) row = gameState.data.cellRows[i];
+        else gameState.data.cellRows.push(row);
+        
 
         for (let j = 0; j < WORDLE_COLS; j++) {
-            const cell = docMake("div", ["wordle-cell", "full-text"], mainDisplay);
-            cell.style["grid-row"] = (i + 2);
-            cell.style["grid-column"] = (j + 2);
-            row.cells.push(cell);
+            docMake("div", ["wordle-cell", "full-text", "letter-text"], mainDisplay, cell => {
+                cell.style["grid-row"] = (i + 2);
+                cell.style["grid-column"] = (j + 2);
+                cellRow.push(cell);
+                popupRow.push(new PopupContainer(cell));
+                if (hasPrev) {
+                    row[j].component = cell;
+                    cell.innerText = row[j].status.letter ? row[j].status.letter : "";
+                    traits.all(t => t.onReloadCell(gameState, row[j]));
+                } else {
+                    row.push(makeCellData(i, j, cell));
+                    traits.all(t => t.onStartCell(gameState, row[j]));
+                }
+            });
         }
-        row.sidebar = docMake("div", ["debug-outline", "wordle-sidebar"], mainDisplay, s => {
+        gridRow.sidebar = docMake("div", ["wordle-sidebar"], mainDisplay, s => {
             s.style["grid-row"] = (i + 2);
             s.style["grid-column"] = WORDLE_COLS + 2;
+            gameState.interactions.popups.sidebars.push(new PopupContainer(s));
         });
+
+        gameState.data.rows.push(makeRowData(i, docMake("div", ["wordle-row"], mainDisplay, cell => {
+            cell.style["grid-row"] = (i + 2);
+            cell.style["grid-column"] = `2 / ${WORDLE_COLS + 2}`;
+        })));
     }
 }
 
-const constructLetterGrid = () => {
+const constructLetterGrid = (hasPrev) => {
     const alphabetRows = [
         "qwertyuiop".split(""),
         "asdfghjkl".split(""),
@@ -83,33 +209,63 @@ const constructLetterGrid = () => {
 
     alphabetRows.forEach((row, i) => {
         row.forEach((char, j) => {
-            const cell = docMake("div", ["letter-cell", "full-text"], letterDisplay);
-            cell.style["grid-row"] = (i + 1);
-            const col = i == 0 ? 2 * j + 1 : 
-                        i == 1 ? 2 * j + 2 :
-                        2 * j + 4;
-            cell.style["grid-column"] = `${col} / ${col + 2}`;
-            cell.innerText = char.toUpperCase();
+            docMake("div", ["letter-cell", "full-text", "letter-text"], letterDisplay, cell => {
+                cell.style["grid-row"] = (i + 1);
+                const col = i == 0 ? 2 * j + 1 : 
+                            i == 1 ? 2 * j + 2 :
+                            2 * j + 4;
+                cell.style["grid-column"] = `${col} / ${col + 2}`;
+                cell.innerText = char;
+                if (hasPrev) {
+                    gameState.data.letters[char].component = cell;
+                    traits.allLetters(t => t.onReloadCell(gameState, gameState.data.letters[char]));
+                } else {
+                    gameState.data.letters[char] = makeLetterData(char, cell);
+                    traits.allLetters(t => t.onStartCell(gameState, gameState.data.letters[char]));
+                }
+                cell.addEventListener("click", e => keyEvent(char));
+            });
         });
     });
-    docMake("div", ["letter-cell", "full-text"], letterDisplay, cell => {
+    docMake("div", ["letter-cell", "full-text", "letter-text"], letterDisplay, cell => {
         cell.style["grid-row"] = 3;
         cell.style["grid-column"] = "1 / 4";
-        cell.innerText = "Enter";
+        docMake("span", [], cell, sub => {
+            sub.innerText = "Enter";
+            sub.style["font-size"] = "0.8em";
+        });
+        if (hasPrev) {
+            gameState.data.letters["enter"].component = cell;
+            traits.allLetters(t => t.onReloadCell(gameState, gameState.data.letters["enter"]));
+        } else {
+            gameState.data.letters["enter"] = makeLetterData("enter", cell);
+            traits.allLetters(t => t.onStartCell(gameState, gameState.data.letters["enter"]));
+        }
+        cell.addEventListener("click", e => keyEvent("Enter"));
     });
-    docMake("div", ["letter-cell", "full-text"], letterDisplay, cell => {
+    docMake("div", ["letter-cell", "full-text", "letter-text"], letterDisplay, cell => {
         cell.style["grid-row"] = 3;
         cell.style["grid-column"] = "18 / 21";
-        cell.innerText = "Del";
+        docMake("span", [], cell, sub => {
+            sub.innerText = "Del";
+            sub.style["font-size"] = "0.8em";
+        });
+        if (hasPrev) {
+            gameState.data.letters["backspace"].component = cell;
+            traits.allLetters(t => t.onReloadCell(gameState, gameState.data.letters["backspace"]));
+        } else {
+            gameState.data.letters["backspace"] = makeLetterData("backspace", cell);
+            traits.allLetters(t => t.onStartCell(gameState, gameState.data.letters["backspace"]));
+        }
+        cell.addEventListener("click", e => keyEvent("Backspace"));
     });
 };
 
-constructGrid();
-constructLetterGrid();
-
 const load = () => {
-    const stats = localStorage.getItem("powerdle-stats");
-    const data = localStorage.getItem("powerdle-state");
+    let stats = localStorage.getItem("powerdle-stats");
+    let data = localStorage.getItem("powerdle-state");
+    if (stats) stats = JSON.parse(stats);
+    if (data) data = JSON.parse(data);
 
     if (stats && stats.version == expectedStatsVersion) {
         gameState.stats = stats;
@@ -117,5 +273,136 @@ const load = () => {
 
     if (data && data.version == expectedDataVersion) {
         gameState.data = data;
+
+        constructGrid(true);
+        constructLetterGrid(true);
+
+        traits.all(t => t.onReload(gameState));
+        traits.allLetters(t => t.onReload(gameState));
+    } else {
+        gameState.data.status.day = todayId;
+        gameState.data.status.target = answerWords[todayId % answerWords.length];
+        gameState.data.version = expectedDataVersion;
+        gameState.stats.version = expectedStatsVersion;
+        gameState.interactions.rand.seed = gameState.data.status.target.split("")
+            .map(l => l.charCodeAt(0)).reduce((acc, elem) => acc * 3217 + elem) % 10293821;
+
+        constructGrid(false);
+        constructLetterGrid(false);
+
+        traits.all(t => t.onStart(gameState));
+        traits.allLetters(t => t.onStart(gameState));
+    }
+
+    gameState.interactions.save();
+    console.log(gameState);
+};
+
+const updatePartial = key => {
+    const status = gameState.data.status;
+    if (key == "backspace") {
+        if (status.partial.length > 0) {
+            status.partial = status.partial.substring(0, status.partial.length - 1);
+            gameState.data.cellRows[status.turn][status.partial.length].status.letter = null;
+            gameState.components.cellRows[status.turn][status.partial.length].innerText = "";
+            traits.allLetters(t => t.onType(gameState, key));
+            traits.allLetters(t => t.onTypeCell(gameState, gameState.data.letters[key]));
+        }
+    } else if (key.length == 1 && ALPHABET.includes(key)) {
+        if (status.partial.length < WORDLE_COLS) {
+            gameState.data.cellRows[status.turn][status.partial.length].status.letter = key;
+            gameState.components.cellRows[status.turn][status.partial.length].innerText = key;
+            status.partial += key;
+            traits.allLetters(t => t.onType(gameState, key));
+            traits.allLetters(t => t.onTypeCell(gameState, gameState.data.letters[key]));
+        }
+    } else if (key == "enter") {
+        traits.allLetters(t => t.onType(gameState, key));
+        traits.allLetters(t => t.onTypeCell(gameState, gameState.data.letters[key]));
     }
 };
+
+const judgeGuess = guess => {
+    guess = guess.split("");
+    const ans = gameState.data.status.target.split("");
+    const out = {
+        cells: []
+    };
+
+    for (let i = 0; i < WORDLE_COLS; i++) {
+        out.cells.push({
+            guess: guess[i],
+            ans: ans[i]
+        });
+        if (guess[i] == ans[i]) {
+            out.cells[i].correctness = GUESS_TYPES.GREEN;
+            guess[i] = "*";
+            ans[i] = "*";
+        }
+    }
+
+    for (let i = 0; i < WORDLE_COLS; i++) {
+        if (guess[i] == "*") continue;
+        const idx = ans.indexOf(guess[i]);
+        if (idx == -1) {
+            out.cells[i].correctness = GUESS_TYPES.GRAY;
+        } else {
+            ans[idx] = "*";
+            out.cells[i].correctness = GUESS_TYPES.YELLOW;
+        }
+    }
+
+    out.allCorrect = out.cells.every(c => c.correctness == GUESS_TYPES.GREEN);
+    return out;
+};
+
+const keyEvent = key => {
+    if (gameState.data.status.gameOver) return;
+
+    key = key.toLowerCase();
+
+    updatePartial(key);
+
+    const status = gameState.data.status;
+    if (key == "enter") {
+        if (status.partial.length == WORDLE_COLS) {
+            if (guessWords.includes(status.partial)) {
+                const judge = judgeGuess(status.partial);
+
+                for (let i = 0; i < WORDLE_COLS; i++) {
+                    const cell = gameState.data.cellRows[status.turn][i];
+                    const cellJudge = judge.cells[i];
+                    cell.status.judged = true;
+                    cell.status.judgeHidden = false;
+                    cell.status.correctness = cellJudge.correctness;
+                }
+
+                if (gameState.turn >= WORDLE_ROWS - 1 || judge.allCorrect) {
+                    status.gameOver = true;
+                    status.won = judge.allCorrect;
+                }
+
+                traits.all(t => t.onPreReveal(gameState, status.turn, judge));
+                for (let j = 0; j < WORDLE_COLS; j++) {
+                    traits.all(t => t.onRevealCell(gameState, gameState.data.cellRows[status.turn][j], judge.cells[j]));
+                }
+                traits.all(t => t.onReveal(gameState, status.turn, judge));
+                traits.allLetters(t => t.onReveal(gameState, status.turn, judge));
+
+                status.turn++;
+                status.partial = "";
+            } else {
+                gameState.interactions.popups.sidebars[status.turn].add(docMake("div", [], null, c => c.innerText = "INVALID"));
+            }
+        }
+    }
+    
+    gameState.interactions.save();
+};
+
+
+load();
+document.body.addEventListener("keydown", e => {
+    if (e.altKey || e.ctrlKey || e.metaKey) return;
+    keyEvent(e.key);
+});

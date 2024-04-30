@@ -3,8 +3,52 @@ body {
     --page-text: white;
 
     --wordle-none: black;
-    --wordle-gray: gray;
-    --wordle-yellow: yellow;
+    --wordle-gray: #192424;
+    --wordle-yellow: #bb9e00;;
     --wordle-green: green;
     --wordle-outline: gray;
+    
+    --wordle-rows: 6;
+    --wordle-cols: 5;
+    --wordle-cell-size: min(50px, 12vw);
+
+    --wordle-letter-height: 50px;
+    --wordle-letter-width: 40px;
 }
+
+.letter-text {
+    font-family: "Bebas Neue", sans-serif;
+    font-weight: 400;
+    font-style: normal;
+    padding-top: 0.1em;
+}
+
+.normal-text {
+    font-family: "Lato", sans-serif;
+    font-weight: 400;
+    font-style: normal;
+}
+
+.popup-text {
+    font-family: "Lato", sans-serif;
+    font-weight: 900;
+    font-style: normal;
+    font-size: 2em;
+}
+
+.bigger {
+    font-size: 1.2em;
+}
+
+.smaller {
+    font-size: 0.8em;
+}
+
+#main-display .letter-text {
+    font-size: calc(var(--wordle-cell-size) * 0.7);
+}
+
+#letter-display .letter-text {
+    font-size: calc(var(--wordle-letter-height) / 2);
+}
+

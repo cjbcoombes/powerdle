@@ -3,6 +3,7 @@
 body {
     background-color: var(--page-background);
     color: var(--page-text);
+    font-size: 14px;
 }
 
 body, body * {
@@ -18,9 +19,8 @@ body, body * {
 
 .full-text {
     display: flex;
-    flex-direction: column;
     justify-content: center;
-    text-align: center;
+    align-items: center;
 }
 
 /* Grid Styles */
@@ -31,10 +31,6 @@ body, body * {
 }
 
 #main-display {
-    --wordle-rows: 6;
-    --wordle-cols: 5;
-    --wordle-cell-size: 50px;
-
     display: grid;
     grid-template-columns: 1fr repeat(var(--wordle-cols), var(--wordle-cell-size)) 1fr;
     grid-template-rows: auto repeat(var(--wordle-rows), var(--wordle-cell-size)) auto;
@@ -67,9 +63,7 @@ body, body * {
 }
 
 #letter-display {
-    --wordle-letter-height: 50px;
-    --wordle-letter-width: 40px;
-
+    margin-top: 10px;
     display: grid;
 
     justify-content: center;
@@ -89,9 +83,18 @@ body, body * {
     border: 2px solid var(--wordle-outline);
 }
 
+.wordle-row {
+    display: none;
+}
+
 .wordle-sidebar {
     justify-self: left;
     align-self: center;
+    margin-left: 10px;
+
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
 }
 
 .letter-cell {
@@ -99,4 +102,34 @@ body, body * {
     height: 90%;
     background-color: var(--wordle-none);
     border: 2px solid var(--wordle-outline);
+}
+
+.letter-cell:hover {
+    cursor: pointer;
+}
+
+/* Animations */
+
+@keyframes fade-in-out-anim {
+    0% {opacity: 0%;}
+    35% {opacity: 100%;}
+    65% {opacity: 100%;}
+    100% {opacity: 0%;}
+}
+
+@keyframes fade-in-anim {
+    0% {opacity: 0%;}
+    100% {opacity: 100%;}
+}
+
+.fade-in-out {
+    animation-name: fade-in-out-anim;
+    animation-duration: 2s;
+    animation-fill-mode: both;
+}
+
+.fade-in {
+    animation-name: fade-in-anim;
+    animation-duration: 2s;
+    animation-fill-mode: both;
 }

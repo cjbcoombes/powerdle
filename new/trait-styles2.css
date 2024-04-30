@@ -1,0 +1,32 @@
+/* Points and Prestige */
+
+#prestige-container {
+    margin: 5px;
+    display: grid;
+    grid-template-columns: auto auto;
+    grid-template-rows: auto 1em;
+}
+
+#prestige-bar {
+    grid-column: 1 / 3;
+    background-color: gray;
+    position: relative;
+}
+
+#prestige-bar-inner {
+    position: absolute;
+    top: 0;
+    left: 0;
+    height: 100%;
+    width: 25%;
+    background-color: purple;
+}
+
+#prestige-icon {
+    font-size: 1.2em;
+    text-shadow: 0 0 10px rgba(255, 255, 0, 0.85);
+}
+
+#points-container {
+    margin: 5px;
+}

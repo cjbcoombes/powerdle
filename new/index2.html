@@ -8,8 +8,9 @@
   <title>Powerdle</title>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <!-- <link href="https://fonts.googleapis.com/css2?family=Anton&family=Source+Code+Pro&display=swap" rel="stylesheet"> -->
+  <link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Lato:wght@400;900&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="colors.css">
+  <link rel="stylesheet" href="trait-styles2.css">
   <link rel="stylesheet" href="style2.css">
 </head>
 
@@ -17,14 +18,36 @@
   <div id="overlay" style="display:none;"></div>
   <div id="main-grid">
     <div id="main-display">
-      <div id="main-top" class="debug-outline"></div>
-      <div id="main-topright" class="debug-outline"></div>
-      <div id="main-bottom" class="debug-outline"></div>
-      <div id="main-bottomright" class="debug-outline"></div>
+      <div id="main-top"></div>
+      <div id="main-topright"></div>
+      <div id="main-bottom">
+        <div id="prestige-container" class="normal-text">
+          <div>
+            Prestige Level: <span id="prestige-icon"></span>
+          </div>
+          <div id="prestige-bounds" style="text-align: right;">0/0
+          </div>
+          <div id="prestige-bar">
+            <div id="prestige-bar-inner"></div>
+          </div>
+        </div>
+      </div>
+      <div id="main-bottomright">
+        <div id="points-container" class="normal-text">
+          <div class="bigger">
+            Total: <span id="points-total"></span>
+          </div>
+          <div class="smaller">
+            Streak Multiplier: <span id="points-mult"></span>
+          </div>
+        </div>
+      </div>
     </div>
     <div id="letter-display"></div>
   </div>
   <script src="utils2.js"></script>
+  <script src="default-traits2.js"></script>
+  <script src="default-letter-traits.js"></script>
   <script src="index2.js"></script>
 </body>
 
