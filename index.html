@@ -8,24 +8,47 @@
   <title>Powerdle</title>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Anton&family=Source+Code+Pro&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="style.css">
-  <link rel="stylesheet" href="trait-styles.css">
-  <link rel="stylesheet" href="loading-spinner.css">
+  <link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Source+Code+Pro&family=Lato:wght@400;900&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="colors.css">
+  <link rel="stylesheet" href="trait-styles2.css">
+  <link rel="stylesheet" href="style2.css">
 </head>
 
 <body>
-  <div id="overlay" style="display:none;"></div>
-  <table id="display"></table>
-  <table id="letters"></table>
-  <table id="apps"></table>
-  <script src="utils.js"></script>
-  <script src="default-traits.js"></script>
-  <script src="extra-traits-1.js"></script>
-  <script src="currency-traits.js"></script>
-  <script src="collectibles-traits.js"></script>
-  <script src="daily-traits.js"></script>
-  <script src="index.js"></script>
+  <div id="overlay" class="off"></div>
+  <div id="main-grid">
+    <div id="main-display">
+      <div id="main-top"></div>
+      <div id="main-topright"></div>
+      <div id="main-bottom">
+        <div id="prestige-container" class="normal-text">
+          <div>
+            Prestige Level: <span id="prestige-icon"></span>
+          </div>
+          <div id="prestige-bounds" style="text-align: right;">0/0
+          </div>
+          <div id="prestige-bar">
+            <div id="prestige-bar-inner"></div>
+          </div>
+        </div>
+      </div>
+      <div id="main-bottomright">
+        <div id="points-container" class="normal-text">
+          <div class="bigger">
+            Total: <span id="points-total"></span>
+          </div>
+          <div class="smaller">
+            Streak Multiplier: <span id="points-mult"></span>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div id="letter-display"></div>
+  </div>
+  <script src="utils2.js"></script>
+  <script src="default-traits2.js"></script>
+  <script src="default-letter-traits.js"></script>
+  <script src="index2.js"></script>
 </body>
 
 </html>

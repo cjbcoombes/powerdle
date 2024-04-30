@@ -1,40 +1,106 @@
+/*
 
-const day = Math.floor(
-    (Date.now() - (new Date().getTimezoneOffset()) * 60 * 1000)
-    / (1000 * 60 * 60 * 24)) - 19838;
+Trait structure mirrors game state:
+components, interactions, data, and stats
 
-const expectedGameVersion = 5;
-const prevState = localStorage.getItem("powerdle-state");
-let hasPrev = !!prevState;
-let gameState = null;
+Traits keep a local state and stats version?
 
-if (hasPrev) {
-    gameState = JSON.parse(prevState);
-    if (gameState.day != day || gameState.version != expectedGameVersion) hasPrev = false;
-}
-if (!hasPrev) {
-    gameState = {
-        version: expectedGameVersion,
-        day: day,
-        turn: 0,
-        partial: "",
-        target: answerWords[day % answerWords.length],
-        gameOver: false,
-        won: false,
+Traits keep local references to state?
 
-        rowData: [],
-        letterData: {},
-        
+Trait functions:
+onLoad
+onReload
+*/
+
+const expectedDataVersion = 0;
+const expectedStatsVersion = 0;
+const gameState = {
+    components: {
+        top: null,
+        topright: null,
+        bottom: null,
+        bottomright: null,
+        rows: [],
+        cellRows: [],
+        letters: {},
+        traits: {}
+    },
+
+    interactions: {
+        save: null, // TODO
+        cellHidden: null,
+        rand: {
+            seed: null,
+            at: null
+        },
+        popups: {
+            rows: [],
+            sidebars: [],
+            overlay: null
+        },
+        traits: {}
+    },
+
+    data: {
+        version: 0,
+        status: {
+            gameOver: false,
+            won: false,
+            day: null,
+            target: null,
+            partial: "",
+            turn: 0
+        },
         traits: {},
+        rows: [],
+        cellRows: [],
+        letters: {}
+    },
 
-        stats: (x => x ? JSON.parse(x) : {})(localStorage.getItem("powerdle-stats")),
-    };
-
-    gameState.seed = gameState.target.split("").map(l => l.charCodeAt(0)).reduce((acc, elem) => acc * 3217 + elem) % 10293821;
-}
-
-gameState.randAt = (k, m = 2**31) => {
-    let seed = gameState.seed - k;
+    stats: {
+        version: 0,
+        traits: {}
+    }
+};
+const makeCellData = (row, col, component) => {
+    return {
+        row,
+        col,
+        component,
+        status: {
+            letter: null,
+            hidden: false,
+            judged: false,
+            judgeHidden: false,
+            correctness: GUESS_TYPES.NONE
+        },
+        traits: {}
+    }
+};
+const makeLetterData = (letter, component) => {
+    return {
+        letter,
+        component,
+        status: {
+            hidden: false
+        },
+        traits: {}
+    }
+};
+const makeRowData = (row, component) => {
+    return {
+        row,
+        component,
+        status: {
+            hidden: false,
+            judged: false,
+            judgeHidden: false
+        },
+        traits: {}
+    }
+};
+gameState.interactions.rand.at = (k, m = 2**31) => {
+    let seed = gameState.interactions.rand.seed - k;
     k = k % 100 + 15;
     while (k > 0) {
         seed = (1103515245 * seed + 12345) % (2**31);
@@ -42,298 +108,242 @@ gameState.randAt = (k, m = 2**31) => {
     }
     return seed % m;
 };
+gameState.interactions.cellHidden = (cellorrow, col) => {
+    if (col == undefined) {
+        col = cellorrow.col;
+        cellorrow = cellorrow.row;
+    }
 
-gameState.popups = {
-    addToRow: (evt, time = 2000, i) => {
-        i = i == undefined ? gameState.turn : i;
-        if (gameState.popups.rows[i].length == 0) {
-            gameState.popups.rowBoxes[i].right.appendChild(evt);
-        }
-        gameState.popups.rows[i].push(evt)
-        gameState.popups.rowTimers[i].push(time);
-    },
-    rows: ROW_BASE.map(i => []),
-    rowBoxes: [],
-    rowTimers: ROW_BASE.map(i => []),
-    infoBoxes: {},
-
-    addToOverlay: (evt, time = 2000, shaded = false) => {
-        if (gameState.popups.overlayElems.length == 0) {
-            gameState.popups.overlayBox.appendChild(evt);
-            gameState.popups.overlayBox.style["display"] = "block";
-            if (shaded) {
-                gameState.popups.overlayBox.classList.add("shaded");
-            }
-        }
-        gameState.popups.overlayElems.push(evt)
-        gameState.popups.overlayTimers.push(time);
-        gameState.popups.overlayShaded.push(shaded);
-    },
-    closeTopOverlay: () => {
-        gameState.popups.overlayTimers.shift();
-        gameState.popups.overlayElems.shift();
-        gameState.popups.overlayShaded.shift();
-
-        gameState.popups.overlayBox.innerHTML = "";
-        gameState.popups.overlayBox.classList.remove("shaded");
-        if (gameState.popups.overlayElems.length != 0) {
-            gameState.popups.overlayBox.appendChild(gameState.popups.overlayElems[0]);
-            if (gameState.popups.overlayShaded[0]) {
-                gameState.popups.overlayBox.classList.add("shaded");
-            }
-        } else {
-            gameState.popups.overlayBox.style["display"] = "none";
-        }
-    },
-    overlayBox: document.getElementById("overlay"),
-    overlayTimers: [],
-    overlayShaded: [],
-    overlayElems: []
-};
-
-gameState.appsTable = document.getElementById("apps");
-
-const expectedStatsVersion = 5;
-if (gameState.stats.statsVersion != expectedStatsVersion) {
-    gameState.stats = {
-        statsVersion: expectedStatsVersion 
-    };
+    return gameState.data.rows[cellorrow].status.hidden ||
+        gameState.data.rows[cellorrow].status.judgeHidden ||
+        gameState.data.cellRows[cellorrow][col].status.hidden || 
+        gameState.data.cellRows[cellorrow][col].status.judgeHidden;
 }
-
-gameState.save = () => {
-    allTraits.forEach(t => t.onSave(gameState));
-    allLetterTraits.forEach(t => t.onSave(gameState));
-    localStorage.setItem("powerdle-stats", JSON.stringify(gameState.stats));
-    localStorage.setItem("powerdle-state", JSON.stringify(gameState));
+const replacer = (key, val) => {
+    if (["component"].includes(key)) return undefined;
+    return val;
 };
-
-const resetSaved = () => {
-    localStorage.removeItem("powerdle-stats");
+gameState.interactions.save = () => {
+    traits.all(t => t.onSave(gameState));
+    traits.allLetters(t => t.onSave(gameState));
+    localStorage.setItem("powerdle-state", JSON.stringify(gameState.data, replacer));
+    localStorage.setItem("powerdle-stats", JSON.stringify(gameState.stats, replacer));
+};
+gameState.interactions.resetSaved = () => {
     localStorage.removeItem("powerdle-state");
+    localStorage.removeItem("powerdle-stats");
 };
+gameState.interactions.popups.addToRow = (...args) => {
+    gameState.interactions.popups.sidebars[gameState.data.status.turn].add(...args);
+};
+gameState.interactions.popups.overlay = new OverlayPopupContainer(docId("overlay"));
 
-console.log(gameState);
+const traits = {
+    normalList: [
+        new CorrectnessColoringTrait(),
+        new StreakTrait(),
+        new StandardPointsTrait()
+    ],
+    letterList: [
+        new CorrectnessColoringLetterTrait()
+    ],
+    normalIndex: {},
+    letterIndex: {},
+    shareLayout: {
+        before: [
+            () => `Powerdle #${gameState.data.status.day} ${gameState.data.status.won ? gameState.data.status.turn : 'X'}/6\n`,
+            "streak",
+            "\n"
+        ],
+        cell: ["correctness"],
+        row: ["points", "\n"],
+        after: ["points"]
+    },
+    all: f => traits.normalList.forEach(f),
+    allLetters: f => traits.letterList.forEach(f)
+};
+traits.all(t => traits.normalIndex[t.name] = t);
+traits.allLetters(t => traits.letterIndex[t.name] = t);
 
-// ----------------------
+const mainDisplay = docId("main-display");
+const letterDisplay = docId("letter-display");
 
-const typedTrait = new TypedTrait();
-const allTraits = [
-    new Trait(),
-    typedTrait,
-    new CorrectnessColoringTrait(),
-    new ReusedGrayTrait(),
-    new NewGreenTrait(),
-    new BannedLetterTrait(),
-    new InfoScoreTrait(),
-    new StreakTrait(),
-    new PetCollectionTrait(),
-    new OptimalComparisonTrait(),
-    new DailyGiftTrait(),
-
-    new CurrencyTrait(), 
-    new StandardPointsTrait() // Important that this is after anything that adds points or creates side popups
-];
-const revTraits = allTraits.slice().reverse();
-
-const allLetterTraits = [
-    new LetterTrait(),
-    new CorrectnessColoringLetterTrait(),
-    new BannedLetterLetterTrait()
-];
-
-// -----------
-
-const displayTable = document.getElementById("display");
-
-for (let i = 0; i < NUM_ROWS + 1; i++) {
-    const row = document.createElement("tr");
-    row.id = "row-" + i;
-
-    const cellContainer = document.createElement("td");
-    cellContainer.classList.add("cell-container", "display");
-
-    const leftContainer = document.createElement("td");
-    leftContainer.classList.add("row-popup-box-container", "left", "scale-font");
-    
-    const rightContainer = document.createElement("td");
-    rightContainer.classList.add("row-popup-box-container", "right", "scale-font");
-
-    const rowData = [];
-    if (i != NUM_ROWS) {
-        for (let j = 0; j < NUM_COLS; j++) {
-            const cell = document.createElement("div");
-            cell.id = "cell-"+i+"-"+j;
-            cell.classList.add("cell");
-
-            cellContainer.appendChild(cell);
-
-            const popupBox = document.createElement("div");
-            popupBox.classList.add("cell-popup-box");
-            cell.appendChild(popupBox);
-
-            const cellData = hasPrev ? gameState.rowData[i][j] : {
-                row: i,
-                col: j,
-                shareText: "*",
-                judge: {
-                    judged: false,
-                    hidden: false,
-                    guess: "",
-                    ans: "",
-                    correctness: GUESS_TYPES.NONE
-                },
-                traits: {},
-                popups: {
-                    elems: [],
-                    timers: []
-                }
-            };
-            rowData.push(cellData);
-
-            cellData.element = cell;
-            cellData.popups.box = popupBox;
-            cellData.popups.add = (evt, time = 2000) => {
-                if (cellData.popups.elems.length == 0) {
-                    cellData.popups.box.appendChild(evt);
-                }
-                cellData.popups.elems.push(evt)
-                cellData.popups.timers.push(time);
-            };
-
-            if (hasPrev) {
-                allTraits.forEach(t => t.onReloadCell(gameState, cellData));
-            } else {
-                allTraits.forEach(t => t.onStartCell(gameState, cellData));
-            }
-
-        }
-        if (!hasPrev) gameState.rowData.push(rowData);
-
-        gameState.popups.rowBoxes.push({left: leftContainer, right:rightContainer});
-    } else {
-        gameState.popups.infoBoxes.left = leftContainer;
-        gameState.popups.infoBoxes.right = rightContainer;
-        cellContainer.classList.add("scale-font");
-        
-        gameState.popups.infoBoxes.center = cellContainer;
-    }
-
-    row.appendChild(leftContainer);
-    row.appendChild(cellContainer);
-    row.appendChild(rightContainer);
-    displayTable.appendChild(row);
-}
-
-
-if (hasPrev) {
-    allTraits.forEach(t => t.onReload(gameState));
-} else {
-    allTraits.forEach(t => t.onStart(gameState));
-}
-
-const letterTable = document.getElementById("letters");
-const alphabetRows = [
-    "qwertyuiop".split(""),
-    "asdfghjkl".split(""),
-    "zxcvbnm".split("")
-]
-for (let i = 0; i < alphabetRows.length; i++) {
-    const row = document.createElement("tr");
-    const cellContainer = document.createElement("td");
-    cellContainer.classList.add("cell-container");
-
-    if (i == 2) {
-        const cell = document.createElement("div");
-        cell.classList.add("letter", "wide");
-        cell.appendChild(makeCenterText("ENTER"));
-        cell.addEventListener("click", e => keyEvent("Enter"));
-        cellContainer.appendChild(cell);
-    }
-
-    for (let j = 0; j < alphabetRows[i].length; j++) {
-        const letter = alphabetRows[i][j];
-        const cell = document.createElement("div");
-        cell.classList.add("letter");
-        cell.appendChild(makeCenterText(letter.toUpperCase()));
-        cell.addEventListener("click", e => keyEvent(letter));
-
-        const letterData = hasPrev ? gameState.letterData[letter] : {
-            letter: letter,
-            traits: {}
+const constructGrid = (hasPrev) => {
+    for (let i = 0; i < WORDLE_ROWS; i++) {
+        const gridRow = {
+            sidebar: null
         };
-        letterData.element = cell;
-        if (hasPrev) {
-            allLetterTraits.forEach(t => t.onReloadCell(gameState, letterData));
-        } else {
-            allLetterTraits.forEach(t => t.onStartCell(gameState, letterData));
+        gameState.components.rows.push(gridRow);
+        const cellRow = [];
+        gameState.components.cellRows.push(cellRow);
+        const popupRow = [];
+        gameState.interactions.popups.rows.push(popupRow);
+
+        let row = [];
+        if (hasPrev) row = gameState.data.cellRows[i];
+        else gameState.data.cellRows.push(row);
+        
+
+        for (let j = 0; j < WORDLE_COLS; j++) {
+            docMake("div", ["wordle-cell", "full-text", "letter-text"], mainDisplay, cell => {
+                cell.style["grid-row"] = (i + 2);
+                cell.style["grid-column"] = (j + 2);
+                cellRow.push(cell);
+                popupRow.push(new PopupContainer(cell));
+                if (hasPrev) {
+                    row[j].component = cell;
+                    cell.innerText = row[j].status.letter ? row[j].status.letter : "";
+                    traits.all(t => t.onReloadCell(gameState, row[j]));
+                } else {
+                    row.push(makeCellData(i, j, cell));
+                    traits.all(t => t.onStartCell(gameState, row[j]));
+                }
+            });
         }
+        gridRow.sidebar = docMake("div", ["wordle-sidebar"], mainDisplay, s => {
+            s.style["grid-row"] = (i + 2);
+            s.style["grid-column"] = WORDLE_COLS + 2;
+            gameState.interactions.popups.sidebars.push(new PopupContainer(s));
+        });
 
-        if (!hasPrev) gameState.letterData[letter] = letterData;
-        cellContainer.appendChild(cell);
+        gameState.data.rows.push(makeRowData(i, docMake("div", ["wordle-row"], mainDisplay, cell => {
+            cell.style["grid-row"] = (i + 2);
+            cell.style["grid-column"] = `2 / ${WORDLE_COLS + 2}`;
+        })));
     }
+}
 
-    if (i == 2) {
-        const cell = document.createElement("div");
-        cell.classList.add("letter", "wide");
-        cell.appendChild(makeCenterText("DEL"));
+const constructLetterGrid = (hasPrev) => {
+    const alphabetRows = [
+        "qwertyuiop".split(""),
+        "asdfghjkl".split(""),
+        "zxcvbnm".split("")
+    ];
+
+    alphabetRows.forEach((row, i) => {
+        row.forEach((char, j) => {
+            docMake("div", ["letter-cell", "full-text", "letter-text"], letterDisplay, cell => {
+                cell.style["grid-row"] = (i + 1);
+                const col = i == 0 ? 2 * j + 1 : 
+                            i == 1 ? 2 * j + 2 :
+                            2 * j + 4;
+                cell.style["grid-column"] = `${col} / ${col + 2}`;
+                cell.innerText = char;
+                if (hasPrev) {
+                    gameState.data.letters[char].component = cell;
+                    traits.allLetters(t => t.onReloadCell(gameState, gameState.data.letters[char]));
+                } else {
+                    gameState.data.letters[char] = makeLetterData(char, cell);
+                    traits.allLetters(t => t.onStartCell(gameState, gameState.data.letters[char]));
+                }
+                cell.addEventListener("click", e => keyEvent(char));
+            });
+        });
+    });
+    docMake("div", ["letter-cell", "full-text", "letter-text"], letterDisplay, cell => {
+        cell.style["grid-row"] = 3;
+        cell.style["grid-column"] = "1 / 4";
+        docMake("span", [], cell, sub => {
+            sub.innerText = "Enter";
+            sub.style["font-size"] = "0.8em";
+        });
+        if (hasPrev) {
+            gameState.data.letters["enter"].component = cell;
+            traits.allLetters(t => t.onReloadCell(gameState, gameState.data.letters["enter"]));
+        } else {
+            gameState.data.letters["enter"] = makeLetterData("enter", cell);
+            traits.allLetters(t => t.onStartCell(gameState, gameState.data.letters["enter"]));
+        }
+        cell.addEventListener("click", e => keyEvent("Enter"));
+    });
+    docMake("div", ["letter-cell", "full-text", "letter-text"], letterDisplay, cell => {
+        cell.style["grid-row"] = 3;
+        cell.style["grid-column"] = "18 / 21";
+        docMake("span", [], cell, sub => {
+            sub.innerText = "Del";
+            sub.style["font-size"] = "0.8em";
+        });
+        if (hasPrev) {
+            gameState.data.letters["backspace"].component = cell;
+            traits.allLetters(t => t.onReloadCell(gameState, gameState.data.letters["backspace"]));
+        } else {
+            gameState.data.letters["backspace"] = makeLetterData("backspace", cell);
+            traits.allLetters(t => t.onStartCell(gameState, gameState.data.letters["backspace"]));
+        }
         cell.addEventListener("click", e => keyEvent("Backspace"));
-        cellContainer.appendChild(cell);
-    }
-    
-    row.appendChild(cellContainer);
-    letterTable.append(row);
-}
-
-if (hasPrev) {
-    allLetterTraits.forEach(t => t.onReload(gameState));
-} else {
-    allLetterTraits.forEach(t => t.onStart(gameState));
-}
-
-// -----------
-
-gameState.save();
-
-const renderShare = () => {
-    const box = document.createElement("div");
-    box.classList.add("center-box", "share-box");
-    
-    const textBox = document.createElement("pre");
-    textBox.innerText = gameState.shareText;
-    box.appendChild(textBox);
-    
-    let button = document.createElement("button");
-    button.classList.add("share-button");
-    button.innerText = "Copy";
-    button.addEventListener("click", e => {
-        navigator.clipboard.writeText(gameState.shareText);
     });
-    box.appendChild(button);
-
-    button = document.createElement("button");
-    button.classList.add("share-button");
-    button.innerText = "Close";
-    button.addEventListener("click", e => {
-        box.style["display"] = "none";
-        gameState.popups.closeTopOverlay();
-    });
-    box.appendChild(button);
-
-    gameState.popups.addToOverlay(box, Infinity, true);
 };
 
-if (gameState.gameOver) {
-    renderShare();
-}
+const load = () => {
+    let stats = localStorage.getItem("powerdle-stats");
+    let data = localStorage.getItem("powerdle-state");
+    if (stats) stats = JSON.parse(stats);
+    if (data) data = JSON.parse(data);
+
+    if (stats && stats.version == expectedStatsVersion) {
+        gameState.stats = stats;
+    }
+
+    if (data && data.version == expectedDataVersion) {
+        gameState.data = data;
+
+        constructGrid(true);
+        constructLetterGrid(true);
+
+        traits.all(t => t.onReload(gameState));
+        traits.allLetters(t => t.onReload(gameState));
+    } else {
+        gameState.data.status.day = todayId;
+        gameState.data.status.target = answerWords[todayId % answerWords.length];
+        gameState.data.version = expectedDataVersion;
+        gameState.stats.version = expectedStatsVersion;
+        gameState.interactions.rand.seed = gameState.data.status.target.split("")
+            .map(l => l.charCodeAt(0)).reduce((acc, elem) => acc * 3217 + elem) % 10293821;
+
+        constructGrid(false);
+        constructLetterGrid(false);
+
+        traits.all(t => t.onStart(gameState));
+        traits.allLetters(t => t.onStart(gameState));
+    }
+
+    if (gameState.data.status.gameOver) makeSharePopup();
+    gameState.interactions.save();
+    console.log(gameState);
+};
+
+const updatePartial = key => {
+    const status = gameState.data.status;
+    if (key == "backspace") {
+        if (status.partial.length > 0) {
+            status.partial = status.partial.substring(0, status.partial.length - 1);
+            gameState.data.cellRows[status.turn][status.partial.length].status.letter = null;
+            gameState.components.cellRows[status.turn][status.partial.length].innerText = "";
+            traits.allLetters(t => t.onType(gameState, key));
+            traits.allLetters(t => t.onTypeCell(gameState, gameState.data.letters[key]));
+        }
+    } else if (key.length == 1 && ALPHABET.includes(key)) {
+        if (status.partial.length < WORDLE_COLS) {
+            gameState.data.cellRows[status.turn][status.partial.length].status.letter = key;
+            gameState.components.cellRows[status.turn][status.partial.length].innerText = key;
+            status.partial += key;
+            traits.allLetters(t => t.onType(gameState, key));
+            traits.allLetters(t => t.onTypeCell(gameState, gameState.data.letters[key]));
+        }
+    } else if (key == "enter") {
+        traits.allLetters(t => t.onType(gameState, key));
+        traits.allLetters(t => t.onTypeCell(gameState, gameState.data.letters[key]));
+    }
+};
 
 const judgeGuess = guess => {
     guess = guess.split("");
-    const ans = gameState.target.split("");
+    const ans = gameState.data.status.target.split("");
     const out = {
         cells: []
     };
 
-    for (let i = 0; i < NUM_COLS; i++) {
+    for (let i = 0; i < WORDLE_COLS; i++) {
         out.cells.push({
             guess: guess[i],
             ans: ans[i]
@@ -345,7 +355,7 @@ const judgeGuess = guess => {
         }
     }
 
-    for (let i = 0; i < NUM_COLS; i++) {
+    for (let i = 0; i < WORDLE_COLS; i++) {
         if (guess[i] == "*") continue;
         const idx = ans.indexOf(guess[i]);
         if (idx == -1) {
@@ -360,122 +370,118 @@ const judgeGuess = guess => {
     return out;
 };
 
+const getShareText = () => {
+    let str = "";
+    traits.shareLayout.before.forEach(e => {
+        if ((typeof e) == "function") {
+            str += e();
+        } else if (e[0] == " " || e[0] == "\n") {
+            str += e;
+        } else {
+            str += traits.normalIndex[e].onPreShare(gameState);
+        }
+    });
+    for (let i = 0; i < WORDLE_ROWS; i++) {
+        for (let j = 0; j < WORDLE_COLS; j++) {
+            traits.shareLayout.cell.forEach(e => {
+                if ((typeof e) == "function") {
+                    str += e(i);
+                } else if (e[0] == " " || e[0] == "\n") {
+                    str += e;
+                } else {
+                    str += traits.normalIndex[e].onShareCell(gameState, gameState.data.cellRows[i][j]);
+                }
+            });
+        }
+
+        traits.shareLayout.row.forEach(e => {
+            if ((typeof e) == "function") {
+                str += e(i);
+            } else if (e[0] == " " || e[0] == "\n") {
+                str += e;
+            } else {
+                str += traits.normalIndex[e].onShareRow(gameState, i);
+            }
+        });
+    }
+    traits.shareLayout.after.forEach(e => {
+        if ((typeof e) == "function") {
+            str += e();
+        } else if (e[0] == " " || e[0] == "\n") {
+            str += e;
+        } else {
+            str += traits.normalIndex[e].onShare(gameState);
+        }
+    });
+
+    return str;
+};
+
+const makeSharePopup = () => {
+    gameState.interactions.popups.overlay.add(docMake("div", ["share-box"], null, e => {
+        const text = getShareText();
+        docMake("pre", ["monospace-text"], e, pre => {
+            pre.innerText = text;
+        });
+        docMake("button", ["normal-text", "share-button"], e, b => {
+            b.innerText = "Copy";
+            b.addEventListener("click", () => navigator.clipboard.writeText(text));
+        });
+        docMake("button", ["normal-text", "share-button"], e, b => {
+            b.innerText = "Close";
+            b.addEventListener("click", () => gameState.interactions.popups.overlay.pop());
+        });
+    }), Infinity, true);
+};
+
 const keyEvent = key => {
-    if (gameState.gameOver) return;
+    if (gameState.data.status.gameOver) return;
 
     key = key.toLowerCase();
+
+    updatePartial(key);
+
+    const status = gameState.data.status;
     if (key == "enter") {
-        if (gameState.partial.length == NUM_COLS) {
-            if (guessWords.includes(gameState.partial)) {
-                const judge = judgeGuess(gameState.partial);
-                
-                for (let i = 0; i < NUM_COLS; i++) {
-                    gameState.rowData[gameState.turn][i].judge.guess = judge.cells[i].guess;
-                    gameState.rowData[gameState.turn][i].judge.ans = judge.cells[i].ans;
-                    gameState.rowData[gameState.turn][i].judge.correctness = judge.cells[i].correctness;
-                    gameState.rowData[gameState.turn][i].judge.judged = true;
-                }
-                
-                if (gameState.turn >= NUM_ROWS - 1 || judge.allCorrect) {
-                    gameState.gameOver = true;
-                    gameState.won = judge.allCorrect;
+        if (status.partial.length == WORDLE_COLS) {
+            if (guessWords.includes(status.partial)) {
+                const judge = judgeGuess(status.partial);
+
+                for (let i = 0; i < WORDLE_COLS; i++) {
+                    const cell = gameState.data.cellRows[status.turn][i];
+                    const cellJudge = judge.cells[i];
+                    cell.status.judged = true;
+                    cell.status.judgeHidden = false;
+                    cell.status.correctness = cellJudge.correctness;
                 }
 
-                allTraits.forEach(t => t.onPreReveal(gameState, gameState.rowData[gameState.turn], judge));
-                for (let i = 0; i < NUM_COLS; i++) {
-                    allTraits.forEach(t => t.onRevealCell(gameState, gameState.rowData[gameState.turn][i], judge.cells[i]));
+                if (gameState.turn >= WORDLE_ROWS - 1 || judge.allCorrect) {
+                    status.gameOver = true;
+                    status.won = judge.allCorrect;
                 }
-                allTraits.forEach(t => t.onReveal(gameState, gameState.rowData[gameState.turn], judge));
-                allLetterTraits.forEach(t => t.onReveal(gameState, gameState.rowData[gameState.turn], judge));
 
-                gameState.turn++;
-                gameState.partial = "";
+                traits.all(t => t.onPreReveal(gameState, status.turn, judge));
+                for (let j = 0; j < WORDLE_COLS; j++) {
+                    traits.all(t => t.onRevealCell(gameState, gameState.data.cellRows[status.turn][j], judge.cells[j]));
+                }
+                traits.all(t => t.onReveal(gameState, status.turn, judge));
+                traits.allLetters(t => t.onReveal(gameState, status.turn, judge));
+
+                status.turn++;
+                status.partial = "";
             } else {
-                const popup = makeFadingPopup("INVALID");
-                popup.classList.add("color-red");
-                gameState.popups.addToRow(popup);
+                gameState.interactions.popups.sidebars[status.turn].add(docMake("div", [], null, c => c.innerText = "INVALID"));
             }
         }
-    } else if (key == "backspace") {
-        if (gameState.partial.length > 0) {
-            gameState.partial = gameState.partial.substring(0, gameState.partial.length - 1);
-            typedTrait.onTypeCell(gameState, gameState.rowData[gameState.turn][gameState.partial.length], "");
-        }
-    } else if (key.length == 1 && ALPHABET.includes(key)) {
-        if (gameState.partial.length < NUM_COLS) {
-            gameState.partial += key;
-            typedTrait.onTypeCell(gameState, gameState.rowData[gameState.turn][gameState.partial.length - 1], key);
-            allLetterTraits.forEach(t => t.onTypeCell(gameState, gameState.letterData[key]));
-            allLetterTraits.forEach(t => t.onType(gameState));
-        }
     }
+    
+    if (gameState.data.status.gameOver) makeSharePopup();
+    gameState.interactions.save();
+};
 
-    if (gameState.gameOver) {
-        gameState.shareText = `Powerdle #${gameState.day} ${gameState.won ? gameState.turn : 'X'}/6\n\n`;
 
-        allTraits.forEach(t => t.onPreShare(gameState));
-        for (let i = 0; i < NUM_ROWS; i++) {
-            for (let j = 0; j < NUM_COLS; j++) {
-                allTraits.forEach(t => t.onShareCell(gameState, gameState.rowData[i][j]));
-                gameState.shareText += gameState.rowData[i][j].shareText;
-            }
-            gameState.shareText += ' ';
-            revTraits.forEach(t => t.onShareRow(gameState, i));
-            gameState.shareText += '\n';
-        }
-        gameState.shareText += '\n';
-        revTraits.forEach(t => t.onShare(gameState));
-
-        renderShare();
-    }
-
-    gameState.save();
-}
-
+load();
 document.body.addEventListener("keydown", e => {
     if (e.altKey || e.ctrlKey || e.metaKey) return;
     keyEvent(e.key);
 });
-
-setInterval(() => {
-    for (let i = 0; i < NUM_ROWS; i++) {
-        if (gameState.popups.rowTimers[i].length <= 0) continue;
-        gameState.popups.rowTimers[i][0] -= 50;
-
-        if (gameState.popups.rowTimers[i][0] <= 0) {
-            gameState.popups.rowTimers[i].shift();
-            gameState.popups.rows[i].shift();
-
-            gameState.popups.rowBoxes[i].right.innerHTML = "";
-            if (gameState.popups.rows[i].length != 0) {
-                gameState.popups.rowBoxes[i].right.appendChild(gameState.popups.rows[i][0]);
-            }
-        }
-
-        //
-
-        for (let j = 0; j < NUM_COLS; j++) {
-            const cell = gameState.rowData[i][j];
-            if (cell.popups.timers.length <= 0) continue;
-            cell.popups.timers[0] -= 50;
-            
-            if (cell.popups.timers[0] <= 0) {
-                cell.popups.timers.shift();
-                cell.popups.elems.shift();
-
-                cell.popups.box.innerHTML = "";
-                if (cell.popups.elems.length != 0) {
-                    cell.popups.box.appendChild(cell.popups.elems[0]);
-                }
-            }
-        }
-    }
-
-    if (gameState.popups.overlayTimers.length > 0) {
-        gameState.popups.overlayTimers[0] -= 50;
-        
-        if (gameState.popups.overlayTimers[0] <= 0) {
-            gameState.popups.closeTopOverlay();
-        }
-    }
-}, 50);
