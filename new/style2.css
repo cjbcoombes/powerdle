@@ -56,7 +56,7 @@ body, body * {
     grid-column: calc(var(--wordle-cols) + 2);
 }
 
-@media (max-width: 700px) {
+@media (max-width: 600px) {
     #main-display {
         grid-template-columns: 10px repeat(var(--wordle-cols), var(--wordle-cell-size)) 1fr;
     }
@@ -105,6 +105,56 @@ body, body * {
 }
 
 .letter-cell:hover {
+    cursor: pointer;
+}
+
+/* Overlay and Share */
+
+#overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    z-index: 1;
+
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+
+#overlay.off {
+    display: none;
+}
+
+#overlay.shaded {
+    background-color: #AAA8;
+}
+
+.share-box {
+    background-color: black;
+    border: 1px solid white;
+    border-radius: 20px;
+    padding: 20px;
+    white-space: nowrap;
+    text-align: center;
+}
+
+.share-box pre {
+    color: white;
+    text-align: left;
+}
+
+.share-button {
+    padding: 10px;
+    background-color: green;
+    border: none;
+    border-radius: 10px;
+    margin: 10px;
+    color: white;
+}
+
+.share-button:hover {
     cursor: pointer;
 }
 

@@ -58,22 +58,25 @@ class PopupContainer {
     }
 
     add(elem, time = 2000) {
-        if (this.elems.length == 0) {
-            this.box.appendChild(elem);
-        }
         this.elems.push(elem);
         this.timers.push(time);
+        if (this.elems.length == 1) {
+            this.push();
+        }
+    }
+
+    push() {
+        this.box.innerHTML = "";
+        if (this.elems.length > 0) {
+            this.box.appendChild(this.elems[0]);
+        }
     }
 
     pop() {
         if (this.elems.length > 0) {
             this.elems.shift();
             this.timers.shift();
-
-            this.box.innerHTML = "";
-            if (this.elems.length > 0) {
-                this.box.appendChild(this.elems[0]);
-            }
+            this.push();
         }
     }
 
@@ -84,6 +87,44 @@ class PopupContainer {
             if (this.timers[0] < 0) {
                 this.pop();
             }
+        }
+    }
+}
+
+class OverlayPopupContainer extends PopupContainer {
+    shaded = []
+
+    add(elem, time = 2000, shaded = false) {
+        this.shaded.push(shaded);
+        this.elems.push(elem);
+        this.timers.push(time);
+        if (this.elems.length == 1) {
+            this.push();
+        }
+    }
+
+    push() {
+        this.box.innerHTML = "";
+
+        if (this.elems.length > 0) {
+            this.box.classList.remove("off");
+            this.box.appendChild(this.elems[0]);
+            if (this.shaded[0]) {
+                this.box.classList.add("shaded");
+            } else {
+                this.box.classList.remove("shaded");
+            }
+        } else {
+            this.box.classList.add("off");
+        }
+    }
+
+    pop() {
+        if (this.elems.length > 0) {
+            this.elems.shift();
+            this.timers.shift();
+            this.shaded.shift();
+            this.push();
         }
     }
 }

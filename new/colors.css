@@ -36,6 +36,12 @@ body {
     font-size: 2em;
 }
 
+.monospace-text {
+    font-family: "Source Code Pro", monospace;
+    font-weight: 400;
+    font-style: normal;
+}
+
 .bigger {
     font-size: 1.2em;
 }

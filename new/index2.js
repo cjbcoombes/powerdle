@@ -35,7 +35,8 @@ const gameState = {
         },
         popups: {
             rows: [],
-            sidebars: []
+            sidebars: [],
+            overlay: null
         },
         traits: {}
     },
@@ -135,10 +136,12 @@ gameState.interactions.resetSaved = () => {
 gameState.interactions.popups.addToRow = (...args) => {
     gameState.interactions.popups.sidebars[gameState.data.status.turn].add(...args);
 };
+gameState.interactions.popups.overlay = new OverlayPopupContainer(docId("overlay"));
 
 const traits = {
     normalList: [
         new CorrectnessColoringTrait(),
+        new StreakTrait(),
         new StandardPointsTrait()
     ],
     letterList: [
@@ -146,6 +149,16 @@ const traits = {
     ],
     normalIndex: {},
     letterIndex: {},
+    shareLayout: {
+        before: [
+            () => `Powerdle #${gameState.data.status.day} ${gameState.data.status.won ? gameState.data.status.turn : 'X'}/6\n`,
+            "streak",
+            "\n"
+        ],
+        cell: ["correctness"],
+        row: ["points", "\n"],
+        after: ["points"]
+    },
     all: f => traits.normalList.forEach(f),
     allLetters: f => traits.letterList.forEach(f)
 };
@@ -294,6 +307,7 @@ const load = () => {
         traits.allLetters(t => t.onStart(gameState));
     }
 
+    if (gameState.data.status.gameOver) makeSharePopup();
     gameState.interactions.save();
     console.log(gameState);
 };
@@ -356,6 +370,70 @@ const judgeGuess = guess => {
     return out;
 };
 
+const getShareText = () => {
+    let str = "";
+    traits.shareLayout.before.forEach(e => {
+        if ((typeof e) == "function") {
+            str += e();
+        } else if (e[0] == " " || e[0] == "\n") {
+            str += e;
+        } else {
+            str += traits.normalIndex[e].onPreShare(gameState);
+        }
+    });
+    for (let i = 0; i < WORDLE_ROWS; i++) {
+        for (let j = 0; j < WORDLE_COLS; j++) {
+            traits.shareLayout.cell.forEach(e => {
+                if ((typeof e) == "function") {
+                    str += e(i);
+                } else if (e[0] == " " || e[0] == "\n") {
+                    str += e;
+                } else {
+                    str += traits.normalIndex[e].onShareCell(gameState, gameState.data.cellRows[i][j]);
+                }
+            });
+        }
+
+        traits.shareLayout.row.forEach(e => {
+            if ((typeof e) == "function") {
+                str += e(i);
+            } else if (e[0] == " " || e[0] == "\n") {
+                str += e;
+            } else {
+                str += traits.normalIndex[e].onShareRow(gameState, i);
+            }
+        });
+    }
+    traits.shareLayout.after.forEach(e => {
+        if ((typeof e) == "function") {
+            str += e();
+        } else if (e[0] == " " || e[0] == "\n") {
+            str += e;
+        } else {
+            str += traits.normalIndex[e].onShare(gameState);
+        }
+    });
+
+    return str;
+};
+
+const makeSharePopup = () => {
+    gameState.interactions.popups.overlay.add(docMake("div", ["share-box"], null, e => {
+        const text = getShareText();
+        docMake("pre", ["monospace-text"], e, pre => {
+            pre.innerText = text;
+        });
+        docMake("button", ["normal-text", "share-button"], e, b => {
+            b.innerText = "Copy";
+            b.addEventListener("click", () => navigator.clipboard.writeText(text));
+        });
+        docMake("button", ["normal-text", "share-button"], e, b => {
+            b.innerText = "Close";
+            b.addEventListener("click", () => gameState.interactions.popups.overlay.pop());
+        });
+    }), Infinity, true);
+};
+
 const keyEvent = key => {
     if (gameState.data.status.gameOver) return;
 
@@ -397,6 +475,7 @@ const keyEvent = key => {
         }
     }
     
+    if (gameState.data.status.gameOver) makeSharePopup();
     gameState.interactions.save();
 };
 

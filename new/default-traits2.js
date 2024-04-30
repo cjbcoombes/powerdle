@@ -50,6 +50,22 @@ class Trait {
     onRevealCell(state, cell, judge) {
         
     }
+
+    onPreShare(state) {
+        return "";
+    }
+
+    onShareCell(state, cell) {
+        return "";
+    }
+
+    onShareRow(state, row) {
+        return "";
+    }
+
+    onShare(state) {
+        return "";
+    }
 }
 
 class CorrectnessColoringTrait extends Trait {
@@ -80,21 +96,61 @@ class CorrectnessColoringTrait extends Trait {
     }
 
     onShareCell(state, cell) {
-        // // 🟥 🟧 🟨 🟩 🟦 🟪 🟫 ⬛ ⬜ ❔
-        // if (cell.judge.hidden) {
-        //     cell.shareText = "❔";
-        // } else if (cell.judge.judged) {
-        //     const correctness = cell.judge.correctness;
-        //     if (correctness == GUESS_TYPES.GREEN) {
-        //         cell.shareText = "🟩";
-        //     } else if (correctness == GUESS_TYPES.YELLOW) {
-        //         cell.shareText = "🟨";
-        //     } else if (correctness == GUESS_TYPES.GRAY) {
-        //         cell.shareText = "🟫";
-        //     } 
-        // } else {
-        //     cell.shareText = "⬛";
-        // }
+        // 🟥 🟧 🟨 🟩 🟦 🟪 🟫 ⬛ ⬜ ❔
+        if (state.interactions.cellHidden(cell)) {
+            return "❔";
+        } else if (cell.status.judged) {
+            const correctness = cell.status.correctness;
+            if (correctness == GUESS_TYPES.GREEN) {
+                return "🟩";
+            } else if (correctness == GUESS_TYPES.YELLOW) {
+                return "🟨";
+            } else if (correctness == GUESS_TYPES.GRAY) {
+                return "🟫";
+            } 
+        } else {
+            return "⬛";
+        }
+    }
+}
+
+class StreakTrait extends Trait {
+    name = "streak"
+
+    onStart(state) {
+        const stg = super.onStart(state);
+        const stats = this.stg(state.stats);
+
+        stg.streak = withDef(stats.streak, 0);
+        stg.lastDayWon = withDef(stats.lastDayWon, -2);
+
+        if (stg.lastDayWon < state.day - 1) {
+            stg.streak = 0;
+        }
+
+        stg.startStreak = stg.streak;
+    }
+
+    onReveal(state, rowId, judge) {
+        const stg = this.stg(state.data);
+
+        if (judge.allCorrect) {
+            stg.streak++;
+            stg.lastDayWon = state.data.status.day;    
+        }
+    }
+
+    onSave(state) {
+        const stg = this.stg(state.data);
+        const stats = this.stg(state.stats);
+
+        stats.streak = stg.streak;
+        stats.lastDayWon = stg.lastDayWon;
+    }
+
+    onPreShare(state) {
+        const streak = this.stg(state.data).streak
+        return `Streak: ${streak} day${streak == 1 ? "" : "s"}\n`;
     }
 }
 
@@ -142,7 +198,7 @@ class StandardPointsTrait extends Trait {
     onStart(state) {
         const stg = super.onStart(state);
         stg.saved = withDef(this.stg(state.stats).saved, 0);
-        stg.mult = 0;// stg.mult = this.stg(state.data, "streak").streak;
+        stg.mult = this.stg(state.data, "streak").streak;
         stg.mult = 1 + Math.log2(stg.mult + 1) / 4;
         stg.mult = Math.round(stg.mult * 100) / 100;
         stg.total = stg.saved;
@@ -155,6 +211,9 @@ class StandardPointsTrait extends Trait {
 
     onReload(state) {
         const stg = super.onReload(state);
+
+        docId("points-total").innerText = signNum(stg.dayDelta);
+        docId("points-mult").innerText = `x${stg.mult.toFixed(2)}`;
 
         for (let i = 0; i < stg.rowDeltas.length; i++) {
             state.interactions.popups.sidebars[i].add(makeTextPopup(signNum(stg.rowDeltas[i]), "white", null, "fade-in"), Infinity);
@@ -258,28 +317,31 @@ class StandardPointsTrait extends Trait {
         this.stg(state.stats).saved = this.stg(state.data).total;
     }
 
-    // onShareRow(state, row) {
-    //     const stg = this.stg(state.data);
+    onShareRow(state, row) {
+        const stg = this.stg(state.data);
 
-    //     if (row < stg.rowDeltas.length && stg.rowDeltas[row] != 0) {
-    //         state.shareText += signNum(stg.rowDeltas[row]) + " ";
-    //     }
-    // }
+        if (row < stg.rowDeltas.length && stg.rowDeltas[row] != 0) {
+            return signNum(stg.rowDeltas[row]) + " ";
+        }
 
-    // onShare(state) {
-    //     // ▰▱
-    //     // 🟪⬜
-    //     const stg = this.stg(state);
+        return "";
+    }
 
-    //     state.shareText += `Total Points: ${signNum(stg.dayDelta)}\n\n`;
+    onShare(state) {
+        // ▰▱
+        // 🟪⬜
+        const stg = this.stg(state.data);
+        let str = `Total Points: ${signNum(stg.dayDelta)}\n\n`;
 
-    //     const level = this.calcLevel(stg.total);
-    //     state.shareText += `Prestige Level:${this.prestigeIcons[level]}\n${stg.total}/${this.prestigeLevels[level]}\n`;
+        const level = this.calcLevel(stg.total);
+        str += `Prestige Level:${this.prestigeIcons[level]}\n${stg.total}/${this.prestigeLevels[level]}\n`;
 
-    //     const len = 8;
-    //     const filled = Math.floor(len * stg.total / this.prestigeLevels[level]);
-    //     state.shareText += `${"🟪".repeat(filled)}${"⬜".repeat(len - filled)}\n`;
+        const len = 8;
+        const filled = Math.floor(len * stg.total / this.prestigeLevels[level]);
+        str += `${"🟪".repeat(filled)}${"⬜".repeat(len - filled)}\n`;
 
-    //     state.shareText += "\n";
-    // }
+        str += "\n";
+
+        return str;
+    }
 }
