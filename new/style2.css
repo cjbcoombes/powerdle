@@ -1,0 +1,102 @@
+/* General Styles */
+
+body {
+    background-color: var(--page-background);
+    color: var(--page-text);
+}
+
+body, body * {
+    box-sizing: border-box;
+    padding: 0;
+    margin: 0;
+}
+
+.debug-outline {
+    border: 1px solid white;
+    min-height: 30px;
+}
+
+.full-text {
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    text-align: center;
+}
+
+/* Grid Styles */
+
+#main-grid {
+    display: grid;
+    
+}
+
+#main-display {
+    --wordle-rows: 6;
+    --wordle-cols: 5;
+    --wordle-cell-size: 50px;
+
+    display: grid;
+    grid-template-columns: 1fr repeat(var(--wordle-cols), var(--wordle-cell-size)) 1fr;
+    grid-template-rows: auto repeat(var(--wordle-rows), var(--wordle-cell-size)) auto;
+}
+
+#main-top {
+    grid-row: 1;
+    grid-column: 2 / calc(var(--wordle-cols) + 2);
+}
+
+#main-topright {
+    grid-row: 1;
+    grid-column: calc(var(--wordle-cols) + 2);
+}
+
+#main-bottom {
+    grid-row: calc(var(--wordle-rows) + 2);
+    grid-column: 2 / calc(var(--wordle-cols) + 2);
+}
+
+#main-bottomright {
+    grid-row: calc(var(--wordle-rows) + 2);
+    grid-column: calc(var(--wordle-cols) + 2);
+}
+
+@media (max-width: 700px) {
+    #main-display {
+        grid-template-columns: 10px repeat(var(--wordle-cols), var(--wordle-cell-size)) 1fr;
+    }
+}
+
+#letter-display {
+    --wordle-letter-height: 50px;
+    --wordle-letter-width: 40px;
+
+    display: grid;
+
+    justify-content: center;
+
+    grid-template-columns: repeat(20, minmax(auto, calc(var(--wordle-letter-width) / 2)));
+    grid-template-rows: repeat(3, var(--wordle-letter-height));
+}
+
+/* Wordle Styles */
+
+.wordle-cell {
+    width: 90%;
+    height: 90%;
+    justify-self: center;
+    align-self: center;
+    background-color: var(--wordle-none);
+    border: 2px solid var(--wordle-outline);
+}
+
+.wordle-sidebar {
+    justify-self: left;
+    align-self: center;
+}
+
+.letter-cell {
+    width: 90%;
+    height: 90%;
+    background-color: var(--wordle-none);
+    border: 2px solid var(--wordle-outline);
+}

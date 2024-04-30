@@ -1,0 +1,10 @@
+body {
+    --page-background: black;
+    --page-text: white;
+
+    --wordle-none: black;
+    --wordle-gray: gray;
+    --wordle-yellow: yellow;
+    --wordle-green: green;
+    --wordle-outline: gray;
+}

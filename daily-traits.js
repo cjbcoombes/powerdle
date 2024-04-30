@@ -83,6 +83,7 @@ class DailyGiftTrait extends Trait {
                         elemRef.innerHTML = "";
                         elem.innerText = "CLAIMED";
                         elem.classList.add("color-green");
+                        // TODO : make it actually give a reward.
                         state.save();
                     });
                     elem.appendChild(button);
