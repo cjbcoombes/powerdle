@@ -6,14 +6,15 @@ body {
     --wordle-gray: #192424;
     --wordle-yellow: #bb9e00;;
     --wordle-green: green;
+    --wordle-red: red;
     --wordle-outline: gray;
     
     --wordle-rows: 6;
     --wordle-cols: 5;
     --wordle-cell-size: min(50px, 12vw);
 
-    --wordle-letter-height: 50px;
-    --wordle-letter-width: 40px;
+    --wordle-letter-height: 60px;
+    --wordle-letter-width: 50px;
 }
 
 .letter-text {

@@ -16,6 +16,8 @@ const ALPHABET = "abcdefghijklmnopqrstuvwxyz".split("");
 
 const WORDLE_ROWS = 6;
 const WORDLE_COLS = 5;
+const ROW_BASE = [];
+for (let i = 0; i < WORDLE_COLS; i++) ROW_BASE.push(i);
 
 const makeOrdinal = num => {
     if (num >= 1 && num <= 3) {

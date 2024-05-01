@@ -10,8 +10,9 @@
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Source+Code+Pro&family=Lato:wght@400;900&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="colors.css">
-  <link rel="stylesheet" href="trait-styles2.css">
-  <link rel="stylesheet" href="style2.css">
+  <link rel="stylesheet" href="loading-spinner.css">
+  <link rel="stylesheet" href="trait-styles.css">
+  <link rel="stylesheet" href="style.css">
 </head>
 
 <body>
@@ -21,11 +22,16 @@
       <div id="main-top"></div>
       <div id="main-topright"></div>
       <div id="main-bottom">
+        <div id="currency-container"  class="normal-text">
+          <div>💎 <span id="currency-gems">?</span></div>
+          <div>🪙 <span id="currency-coins">?</span></div>
+          <div>⚙️ <span id="currency-gears">?</span></div>
+        </div>
         <div id="prestige-container" class="normal-text">
           <div>
             Prestige Level: <span id="prestige-icon"></span>
           </div>
-          <div id="prestige-bounds" style="text-align: right;">0/0
+          <div id="prestige-bounds" style="text-align: right;">?/?
           </div>
           <div id="prestige-bar">
             <div id="prestige-bar-inner"></div>
@@ -35,20 +41,26 @@
       <div id="main-bottomright">
         <div id="points-container" class="normal-text">
           <div class="bigger">
-            Total: <span id="points-total"></span>
+            Total: <span id="points-total">?</span>
           </div>
           <div class="smaller">
-            Streak Multiplier: <span id="points-mult"></span>
+            Streak Multiplier: <span id="points-mult">x?</span>
+          </div>
+          <div class="smaller">
+            Optimal Comparison: <span id="opt-comp">?%</span>
+            <div id="opt-comp-spinner" class="lds-spinner off"><div></div><div></div><div></div><div></div><div></div><div></div><div></div><div></div><div></div><div></div><div></div><div></div></div>
           </div>
         </div>
       </div>
     </div>
     <div id="letter-display"></div>
   </div>
-  <script src="utils2.js"></script>
-  <script src="default-traits2.js"></script>
+  <script src="utils.js"></script>
+  <script src="default-traits.js"></script>
   <script src="default-letter-traits.js"></script>
-  <script src="index2.js"></script>
+  <script src="misc-traits.js"></script>
+  <script src="currency-traits.js"></script>
+  <script src="index.js"></script>
 </body>
 
 </html>

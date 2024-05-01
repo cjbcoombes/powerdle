@@ -12,11 +12,19 @@ class Trait {
         if (state.stats.traits[this.name] == undefined) {
             state.stats.traits[this.name] = {};
         }
+        if (state.interactions.traits[this.name] == undefined) {
+            state.interactions.traits[this.name] = {};
+        }
+        if (state.components.traits[this.name] == undefined) {
+            state.components.traits[this.name] = {};
+        }
         return this.stg(state.data);
     }
 
     onStart(state) {
         state.data.traits[this.name] = {};
+        state.interactions.traits[this.name] = {};
+        state.components.traits[this.name] = {};
         if (state.stats.traits[this.name] == undefined) {
             state.stats.traits[this.name] = {};
         }
@@ -52,19 +60,15 @@ class Trait {
     }
 
     onPreShare(state) {
-        return "";
     }
 
     onShareCell(state, cell) {
-        return "";
     }
 
     onShareRow(state, row) {
-        return "";
     }
 
     onShare(state) {
-        return "";
     }
 }
 
@@ -323,8 +327,6 @@ class StandardPointsTrait extends Trait {
         if (row < stg.rowDeltas.length && stg.rowDeltas[row] != 0) {
             return signNum(stg.rowDeltas[row]) + " ";
         }
-
-        return "";
     }
 
     onShare(state) {

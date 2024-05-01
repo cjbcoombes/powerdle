@@ -30,3 +30,126 @@
 #points-container {
     margin: 5px;
 }
+
+/* Currency */
+
+#currency-container {
+    margin: 5px;
+    display: flex;
+    
+    justify-content: space-evenly;
+}
+
+#currency-container div {
+    font-size: 1.5em;
+}
+
+#currency-container span {
+    font-size: 0.8em;
+}
+
+@keyframes currency-fade-in-anim {
+    0% {
+        opacity: 0%; 
+        transform: scale(0%);
+    }
+    35% {
+        opacity: 100%; 
+    }
+    100% {
+        opacity: 0%; 
+        transform: scale(200%);
+    }
+}
+
+.currency-popup {
+    animation-name: currency-fade-in-anim;
+    animation-duration: 2s;
+    animation-fill-mode: both;
+    font-size: 3em;
+    padding-bottom: 0.2em;
+}
+
+/* Info Score */
+
+.hit-popup-box {
+    white-space: nowrap;
+}
+
+.hit-popup-text {
+    font-size: 2em;
+}
+
+.hit-popup-emoji {
+    font-size: 3em;
+}
+
+@keyframes hit-slide-anim {
+    0% {
+        transform: translateY(-60vh);
+    }
+    100% {
+        transform: translateY(60vh);
+    }
+}
+
+@keyframes hit-slam-anim {
+    0% {
+        opacity: 0%; 
+        transform: scale(200%) rotate(360deg);
+    }
+    
+    20% {
+        opacity: 100%;
+        transform: scale(100%) rotate(0deg);
+    }
+
+    40% {
+        opacity: 100%;
+        transform: scale(100%) rotate(0deg);
+    }
+    
+    100% {
+        opacity: 0%;
+        transform: scale(50%) rotate(0deg);
+    }
+}
+
+@keyframes hit-bounce-anim {
+    0% {
+        transform: scale(0%);
+    }
+
+    100% {
+        transform: scale(150%);
+    }
+}
+
+.hit-slide {
+    animation-name: hit-slide-anim;
+    animation-timing-function: linear;
+    animation-duration: 6s;
+    animation-fill-mode: both;
+}
+
+.hit-slam {
+    animation-name: hit-slam-anim;
+    animation-timing-function: linear;
+    animation-duration: 4s;
+    animation-fill-mode: both;
+}
+
+.hit-bounce {
+    animation-name: hit-bounce-anim;
+    animation-timing-function: cubic-bezier(0,0,0.4,1);
+    animation-duration: 2s;
+    animation-fill-mode: both;
+    animation-direction: alternate;
+    animation-iteration-count: 2;
+}
+
+/* Optimal Comparison */
+
+#opt-comp-spinner {
+    vertical-align: middle;
+}

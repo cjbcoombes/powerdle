@@ -100,7 +100,7 @@ const makeRowData = (row, component) => {
     }
 };
 gameState.interactions.rand.at = (k, m = 2**31) => {
-    let seed = gameState.interactions.rand.seed - k;
+    let seed = Math.max(1, gameState.interactions.rand.seed - k);
     k = k % 100 + 15;
     while (k > 0) {
         seed = (1103515245 * seed + 12345) % (2**31);
@@ -136,16 +136,28 @@ gameState.interactions.resetSaved = () => {
 gameState.interactions.popups.addToRow = (...args) => {
     gameState.interactions.popups.sidebars[gameState.data.status.turn].add(...args);
 };
+gameState.interactions.popups.addToCell = (cell, ...args) => {
+    gameState.interactions.popups.rows[cell.row][cell.col].add(...args);
+};
 gameState.interactions.popups.overlay = new OverlayPopupContainer(docId("overlay"));
 
 const traits = {
     normalList: [
+        new ReusedGrayTrait(),
+        new NewGreenTrait(),
+        new OptimalComparisonTrait(),
+
         new CorrectnessColoringTrait(),
+        new BannedLetterTrait(),
+        new InfoScoreTrait(),
+
         new StreakTrait(),
+        new CurrencyTrait(),
         new StandardPointsTrait()
     ],
     letterList: [
-        new CorrectnessColoringLetterTrait()
+        new CorrectnessColoringLetterTrait(),
+        new BannedLetterLetterTrait()
     ],
     normalIndex: {},
     letterIndex: {},
@@ -153,11 +165,12 @@ const traits = {
         before: [
             () => `Powerdle #${gameState.data.status.day} ${gameState.data.status.won ? gameState.data.status.turn : 'X'}/6\n`,
             "streak",
-            "\n"
+            "\n",
+            "optimalcomparison"
         ],
-        cell: ["correctness"],
-        row: ["points", "\n"],
-        after: ["points"]
+        cell: ["correctness", "newgreen", "reusedgray", "currency", "bannedletter"],
+        row: ["points", "infoscore", "bannedletter", "\n"],
+        after: ["currency", "points"]
     },
     all: f => traits.normalList.forEach(f),
     allLetters: f => traits.letterList.forEach(f)
@@ -189,7 +202,6 @@ const constructGrid = (hasPrev) => {
                 cell.style["grid-row"] = (i + 2);
                 cell.style["grid-column"] = (j + 2);
                 cellRow.push(cell);
-                popupRow.push(new PopupContainer(cell));
                 if (hasPrev) {
                     row[j].component = cell;
                     cell.innerText = row[j].status.letter ? row[j].status.letter : "";
@@ -199,6 +211,10 @@ const constructGrid = (hasPrev) => {
                     traits.all(t => t.onStartCell(gameState, row[j]));
                 }
             });
+            popupRow.push(new PopupContainer(docMake("div", ["wordle-cell-popup"], mainDisplay, p => {
+                p.style["grid-row"] = (i + 2);
+                p.style["grid-column"] = (j + 2);
+            })));
         }
         gridRow.sidebar = docMake("div", ["wordle-sidebar"], mainDisplay, s => {
             s.style["grid-row"] = (i + 2);
@@ -244,7 +260,7 @@ const constructLetterGrid = (hasPrev) => {
         cell.style["grid-row"] = 3;
         cell.style["grid-column"] = "1 / 4";
         docMake("span", [], cell, sub => {
-            sub.innerText = "Enter";
+            sub.innerText = "↵";
             sub.style["font-size"] = "0.8em";
         });
         if (hasPrev) {
@@ -260,7 +276,7 @@ const constructLetterGrid = (hasPrev) => {
         cell.style["grid-row"] = 3;
         cell.style["grid-column"] = "18 / 21";
         docMake("span", [], cell, sub => {
-            sub.innerText = "Del";
+            sub.innerText = "⌫";
             sub.style["font-size"] = "0.8em";
         });
         if (hasPrev) {
@@ -288,9 +304,8 @@ const load = () => {
         gameState.data = data;
 
         constructGrid(true);
-        constructLetterGrid(true);
-
         traits.all(t => t.onReload(gameState));
+        constructLetterGrid(true);
         traits.allLetters(t => t.onReload(gameState));
     } else {
         gameState.data.status.day = todayId;
@@ -301,9 +316,8 @@ const load = () => {
             .map(l => l.charCodeAt(0)).reduce((acc, elem) => acc * 3217 + elem) % 10293821;
 
         constructGrid(false);
-        constructLetterGrid(false);
-
         traits.all(t => t.onStart(gameState));
+        constructLetterGrid(false);
         traits.allLetters(t => t.onStart(gameState));
     }
 
@@ -378,20 +392,24 @@ const getShareText = () => {
         } else if (e[0] == " " || e[0] == "\n") {
             str += e;
         } else {
-            str += traits.normalIndex[e].onPreShare(gameState);
+            const v = traits.normalIndex[e].onPreShare(gameState);
+            if (v) str += v;
         }
     });
     for (let i = 0; i < WORDLE_ROWS; i++) {
         for (let j = 0; j < WORDLE_COLS; j++) {
+            let c = "";
             traits.shareLayout.cell.forEach(e => {
                 if ((typeof e) == "function") {
-                    str += e(i);
+                    c = e(i);
                 } else if (e[0] == " " || e[0] == "\n") {
-                    str += e;
+                    c = e;
                 } else {
-                    str += traits.normalIndex[e].onShareCell(gameState, gameState.data.cellRows[i][j]);
+                    const v = traits.normalIndex[e].onShareCell(gameState, gameState.data.cellRows[i][j]);
+                    if (v) c = v;
                 }
             });
+            str += c;
         }
 
         traits.shareLayout.row.forEach(e => {
@@ -400,7 +418,8 @@ const getShareText = () => {
             } else if (e[0] == " " || e[0] == "\n") {
                 str += e;
             } else {
-                str += traits.normalIndex[e].onShareRow(gameState, i);
+                const v = traits.normalIndex[e].onShareRow(gameState, i);
+                if (v) str += v;
             }
         });
     }
@@ -410,7 +429,8 @@ const getShareText = () => {
         } else if (e[0] == " " || e[0] == "\n") {
             str += e;
         } else {
-            str += traits.normalIndex[e].onShare(gameState);
+            const v = traits.normalIndex[e].onShare(gameState);
+            if (v) str += v;
         }
     });
 
@@ -470,7 +490,7 @@ const keyEvent = key => {
                 status.turn++;
                 status.partial = "";
             } else {
-                gameState.interactions.popups.sidebars[status.turn].add(docMake("div", [], null, c => c.innerText = "INVALID"));
+                gameState.interactions.popups.sidebars[status.turn].add(makeTextPopup("INVALID", "var(--wordle-red)"));
             }
         }
     }
