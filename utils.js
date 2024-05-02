@@ -47,6 +47,34 @@ const makeTextPopup = (text, color, callback, anim = "fade-in-out") => {
         if (callback) callback(e);
     });
 }
+const makeLightRays = (radius, count, runit = "px") => {
+    const container = document.createElement("div");
+    container.classList.add("light-ray-container");
+    container.style["width"] = container.style["height"] = `${radius}${runit}`;
+
+    for (let i = 0; i < count; i++) {
+        const ray = document.createElement("div");
+        ray.classList.add("light-ray");
+        ray.innerHTML = `<svg viewBox="0 0 100 100">
+        <defs>
+        <linearGradient id="Light-Gradient" x1="0" x2="0" y1="0" y2="1">
+            <stop offset="0%" stop-color="yellow" />
+            <stop offset="100%" stop-color="yellow" stop-opacity="0"/>
+        </linearGradient>
+        </defs>
+        <polygon points="0 0, 100 80, 80 100"/>
+        </svg>`;
+        ray.style["width"] = ray.style["height"] = `${(0.5 + 0.5 * Math.random()) * 100}%`;
+        const dur = 10 + Math.random() * 30;
+        ray.style["animation-duration"] = `${dur}s`;
+        ray.style["animation-delay"] = `-${Math.random() * dur}s`;
+        ray.style["opacity"] = `${0.8 + 0.2 * Math.random()}`;
+
+        container.appendChild(ray);
+    }
+
+    return container;
+}
 
 const allPopups = [];
 class PopupContainer {

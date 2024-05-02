@@ -255,3 +255,117 @@
 .pet-epic.pet-show-icon:not(.pet-show-shaded) {
     box-shadow: 0 0 10px #A0A;
 }
+
+/* Daily Gifts */
+
+.gift-box {
+    display: grid;
+    justify-items: center;
+    align-items: center;
+
+    grid-template-columns: repeat(3, auto);
+}
+
+@keyframes gift-vanish-anim {
+    0% {opacity: 100%;}
+    100% {opacity: 0%;}
+}
+
+.gift-box.vanish {
+    animation-name: gift-vanish-anim;
+    animation-duration: 1.5s;
+    animation-delay: 3s;
+    animation-fill-mode: both;
+}
+
+.gift-day {
+    font-size: 1.5em;
+    margin: 5px;
+}
+
+.gift-day.selected {
+    font-size: 2em;
+}
+
+.gift-gift {
+    position: relative;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    
+    font-size: 1.2em;
+
+    background-color: rgb(193, 177, 8);
+    border: 3px solid yellow;
+    border-radius: 10px;
+    width: 2em;
+    height: 2em;
+    margin: 10px;
+
+    z-index: 0;
+}
+
+.gift-gift.inside {
+    background-color: rgb(92, 55, 4);
+    border-color: rgb(131, 73, 16);
+}
+
+@keyframes gift-reveal-anim {
+    0% {
+        transform: scale(100%);
+        opacity: 100%;
+    }
+
+    50% {
+        opacity: 100%;
+    }
+
+    100% {
+        transform: scale(300%);
+        opacity: 0%;
+    }
+}
+
+.gift-gift.revealed {
+    animation-name: gift-reveal-anim;
+    animation-timing-function: ease-in;
+    animation-duration: 1.5s;
+    animation-fill-mode: both;
+    z-index: 1;
+}
+
+.gift-gift.selected {
+    font-size: 2em;
+}
+
+.gift-gift.selected:hover {
+    cursor: pointer;
+}
+
+.gift-status.selected {
+    font-size: 1.5em;
+}
+
+@keyframes gift-oscillate-anim {
+    0% {
+        transform: scale(75%);
+    }
+
+    100% {
+        transform: scale(110%);
+    }
+}
+
+.gift-status.claim-now {
+    animation-name: gift-oscillate-anim;
+    animation-iteration-count: infinite;
+    animation-timing-function: cubic-bezier(0.445, 0.05, 0.55, 0.95);
+    animation-direction: alternate;
+    animation-duration: 1.5s;
+    animation-fill-mode: both;
+}
+
+.gift-icon {
+    text-shadow: 0 0 0.2em #444;
+    padding-bottom: 0.1em;
+}

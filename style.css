@@ -139,7 +139,7 @@ body, body * {
     background-color: #AAA8;
 }
 
-.share-box {
+.overlay-box {
     background-color: black;
     border: 1px solid white;
     border-radius: 20px;
@@ -148,7 +148,7 @@ body, body * {
     text-align: center;
 }
 
-.share-box pre {
+.share-pre {
     color: white;
     text-align: left;
 }
@@ -190,4 +190,41 @@ body, body * {
     animation-name: fade-in-anim;
     animation-duration: 2s;
     animation-fill-mode: both;
+}
+
+/* Light Rays */
+
+@keyframes light-ray-anim {
+    0% {
+        transform: rotate(0deg);
+    }
+    100% {
+        transform: rotate(360deg);
+    }
+}
+
+.light-ray-container {
+    position: absolute;
+    width: 0;
+    height: 0;
+    left: 50%;
+    top: 50%;
+}
+
+.light-ray {
+    animation-name: light-ray-anim;
+    animation-iteration-count: infinite;
+    animation-timing-function: linear;
+    transform-origin: 0 0;
+    position: absolute;
+    top: 0;
+    left: 0;
+    fill: url(#Light-Gradient);
+    margin: 0;
+    padding: 0;
+    z-index: -1;
+}
+
+.light-ray svg {
+    display: block;
 }

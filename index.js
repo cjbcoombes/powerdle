@@ -154,6 +154,7 @@ const traits = {
         new StreakTrait(),
         new CurrencyTrait(),
         new PetCollectionTrait(),
+        new DailyGiftTrait(),
         new StandardPointsTrait()
     ],
     letterList: [
@@ -445,9 +446,9 @@ const getShareText = () => {
 };
 
 const makeSharePopup = () => {
-    gameState.interactions.popups.overlay.add(docMake("div", ["share-box"], null, e => {
+    gameState.interactions.popups.overlay.add(docMake("div", ["overlay-box"], null, e => {
         const text = getShareText();
-        docMake("pre", ["monospace-text"], e, pre => {
+        docMake("pre", ["monospace-text", "share-pre"], e, pre => {
             pre.innerText = text;
         });
         docMake("button", ["normal-text", "share-button"], e, b => {

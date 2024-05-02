@@ -140,8 +140,8 @@ class CurrencyTrait extends Trait {
     onShare(state) {
         const stg = this.stg(state.data);
 
-        return `💎${stg.totalGems}(+${stg.totalGems - stg.savedGems})  `
-         + `🪙${stg.totalCoins}(+${stg.totalCoins - stg.savedCoins})  `
-         + `⚙️${stg.totalGears}(+${stg.totalGears - stg.savedGears})\n`;
+        return `💎${stg.totalGems}(${signNum(stg.totalGems - stg.savedGems)})  `
+         + `🪙${stg.totalCoins}(${signNum(stg.totalCoins - stg.savedCoins)})  `
+         + `⚙️${stg.totalGears}(${signNum(stg.totalGears - stg.savedGears)})\n`;
     }
 }
