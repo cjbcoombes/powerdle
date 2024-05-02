@@ -12,8 +12,8 @@ onLoad
 onReload
 */
 
-const expectedDataVersion = 0;
-const expectedStatsVersion = 0;
+const expectedDataVersion = 10;
+const expectedStatsVersion = 10;
 const gameState = {
     components: {
         top: null,
