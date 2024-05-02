@@ -173,7 +173,7 @@ const traits = {
         ],
         cell: ["correctness", "newgreen", "reusedgray", "currency", "bannedletter"],
         row: ["points", "infoscore", "bannedletter", "\n"],
-        after: ["currency", "points"]
+        after: ["\n", "currency", "points"]
     },
     all: f => traits.normalList.forEach(f),
     allLetters: f => traits.letterList.forEach(f)
@@ -303,8 +303,11 @@ const load = () => {
         gameState.stats = stats;
     }
 
-    if (data && data.version == expectedDataVersion) {
+    if (data && data.version == expectedDataVersion && data.status.day == todayId) {
         gameState.data = data;
+
+        gameState.interactions.rand.seed = gameState.data.status.target.split("")
+            .map(l => l.charCodeAt(0)).reduce((acc, elem) => acc * 3217 + elem) % 10293821;
 
         constructGrid(true);
         traits.all(t => t.onReload(gameState));
@@ -315,6 +318,7 @@ const load = () => {
         gameState.data.status.target = answerWords[todayId % answerWords.length];
         gameState.data.version = expectedDataVersion;
         gameState.stats.version = expectedStatsVersion;
+
         gameState.interactions.rand.seed = gameState.data.status.target.split("")
             .map(l => l.charCodeAt(0)).reduce((acc, elem) => acc * 3217 + elem) % 10293821;
 

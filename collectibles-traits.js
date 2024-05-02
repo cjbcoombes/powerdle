@@ -138,7 +138,8 @@ pets.forEach(a => {
 
 class PetCollectionTrait extends Trait {
     name = "pets"
-    DISPLAY_COUNT = 4
+    DISPLAY_COUNT = 3
+    SHOP_COUNT = 4
 
     /*
     0 = not owned
@@ -166,6 +167,10 @@ class PetCollectionTrait extends Trait {
             docMake("div", ["pet-icon"], box, icon => {
                 icon.innerText = pet ? pet.icon : "X";
             });
+
+            docMake("div", ["pet-question"], box, icon => {
+                icon.innerText = "❔";
+            });
         });
 
         /*
@@ -192,6 +197,7 @@ class PetCollectionTrait extends Trait {
             box.id = `pet-box-${i}`;
             box.addEventListener("click", e => {
                 this.selectPet(state, pet.id);
+                state.interactions.save();
             });
             container.appendChild(box);
         }
@@ -199,6 +205,70 @@ class PetCollectionTrait extends Trait {
         for (let i = 0; i < pets.length; i++) {
             this.setPetStatus(state, i, stg.pets[i]);
         }
+    }
+
+    reloadShop(state) {
+        const stg = this.stg(state.data);
+
+        const shopPets = [];
+        for (let i = 0; i < this.SHOP_COUNT; i++) {
+            let r = state.interactions.rand.at(9213 + i * 191, pets.length);
+            while (shopPets.includes(r)) {
+                r = (r + 1) % shopPets.length; 
+            }
+            shopPets.push(r);
+
+            
+            const box = this.makePetBox(pets[r], ["pet-show-icon"]);
+            
+            docId(`pet-shop-${i}`).innerHTML = "";
+            docId(`pet-shop-${i}`).appendChild(box);
+            
+            if (stg.pets[r] != 0) {
+                box.classList.add("pet-show-shaded");
+                docId(`pet-price-${i}`).innerText = "OWNED";
+                docId(`pet-price-${i}`).classList.add("owned");
+            } else if (pets[r].tier == PET_TIERS.COMMON) {
+                docId(`pet-price-${i}`).innerText = "⚙️20";
+                box.addEventListener("click", e => {
+                    const ints = this.stg(state.interactions, "currency");
+                    if (ints.hasQuantities(0, 0, 20)) {
+                        ints.updateQuantities(0, 0, -20);
+                        this.buyPet(state, r);
+                        state.interactions.save();
+                    }
+                });
+            } else if (pets[r].tier == PET_TIERS.RARE) {
+                docId(`pet-price-${i}`).innerText = "🪙20";
+                box.addEventListener("click", e => {
+                    const ints = this.stg(state.interactions, "currency");
+                    if (ints.hasQuantities(0, 20, 0)) {
+                        ints.updateQuantities(0, -20, 0);
+                        this.buyPet(state, r);
+                        state.interactions.save();
+                    }
+                });
+            } else if (pets[r].tier == PET_TIERS.EPIC) {
+                docId(`pet-price-${i}`).innerText = "💎20";
+                box.addEventListener("click", e => {
+                    const ints = this.stg(state.interactions, "currency");
+                    if (ints.hasQuantities(20, 0, 0)) {
+                        ints.updateQuantities(-20, 0, 0);
+                        this.buyPet(state, r);
+                        state.interactions.save();
+                    }
+                });
+            }
+        }
+    }
+
+    buyPet(state, id) {
+        const stg = this.stg(state.data);
+
+        if (stg.pets[id] != 0) return;
+
+        this.setPetStatus(state, id, 1);
+        this.reloadShop(state);
     }
 
     selectPet(state, id) {
@@ -247,6 +317,7 @@ class PetCollectionTrait extends Trait {
             const newbox = this.makePetBox(pets[id], ["pet-show-icon"]);
             newbox.addEventListener("click", e => {
                 this.setPetStatus(state, id, 1);
+                state.interactions.save();
             });
             docId(`pet-display-${status - 2}`).appendChild(newbox);
         }
@@ -269,20 +340,23 @@ class PetCollectionTrait extends Trait {
     onReload(state) {
         const stg = super.onReload(state);
 
-        const shopPets = [
-            state.interactions.rand.at(9213, pets.length),
-            state.interactions.rand.at(9644, pets.length),
-            state.interactions.rand.at(2285, pets.length)
-        ];
-        while (shopPets[1] == shopPets[0]) {
-            shopPets[1] = (shopPets[1] + 1) % shopPets.length;
-        }
-        while (shopPets[2] == shopPets[0] || shopPets[2] == shopPets[1]) {
-            shopPets[2] = (shopPets[2] + 1) % shopPets.length;
+        const shopElem = docId("pet-shop");
+        shopElem.style["grid-template-columns"] = `repeat(${this.SHOP_COUNT}, 1fr)`;
+        for (let i = 0; i < this.SHOP_COUNT; i++) {
+            docMake("div", [], shopElem, e => {
+                e.id = `pet-shop-${i}`;
+            });
+            docMake("div", ["pet-price"], shopElem, e => {
+                e.id = `pet-price-${i}`;
+            });
         }
 
+        this.reloadShop(state);
+
+        const displayElem = docId("pet-display");
+        displayElem.style["grid-template-columns"] = `repeat(${this.DISPLAY_COUNT}, 1fr)`;
         for (let i = 0; i < this.DISPLAY_COUNT; i++) {
-            docMake("div", [], docId("pet-display"), e => e.id = `pet-display-${i}`);
+            docMake("div", [], displayElem, e => e.id = `pet-display-${i}`);
         }
 
         this.reloadCollection(state);

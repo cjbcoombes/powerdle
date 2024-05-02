@@ -156,7 +156,7 @@
 
 /* Pets */
 #pet-container {
-    --pet-box-size: 30px;
+    --pet-box-size: 50px;
 
     display: grid;
 
@@ -173,7 +173,9 @@
     border: 2px solid yellow;
 
     display: grid;
-    grid-template-columns: 1fr 1fr 1fr;
+    grid-template-columns: repeat(3, 1fr);
+    justify-items: center;
+    align-items: center;
 }
 
 #pet-shop {
@@ -190,6 +192,7 @@
     border: 2px solid darkslategray;
     background-color: #111;
     margin: 5px;
+    font-size: 2em;
 
     display: flex;
     justify-content: center;
@@ -197,6 +200,20 @@
 
     width: var(--pet-box-size);
     height: var(--pet-box-size);
+}
+
+#pet-shop .pet-box {
+    grid-row: 1;
+}
+
+.pet-price {
+    grid-row: 2;
+    text-align: center;
+}
+
+.pet-price.owned {
+    color: var(--wordle-red);
+    font-size: 0.8em;
 }
 
 :not(.pet-show-icon) > .pet-icon {
