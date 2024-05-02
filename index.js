@@ -153,6 +153,7 @@ const traits = {
 
         new StreakTrait(),
         new CurrencyTrait(),
+        new PetCollectionTrait(),
         new StandardPointsTrait()
     ],
     letterList: [
@@ -165,6 +166,8 @@ const traits = {
         before: [
             () => `Powerdle #${gameState.data.status.day} ${gameState.data.status.won ? gameState.data.status.turn : 'X'}/6\n`,
             "streak",
+            "\n",
+            "pets",
             "\n",
             "optimalcomparison"
         ],

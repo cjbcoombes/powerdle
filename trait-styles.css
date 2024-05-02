@@ -153,3 +153,88 @@
 #opt-comp-spinner {
     vertical-align: middle;
 }
+
+/* Pets */
+#pet-container {
+    --pet-box-size: 30px;
+
+    display: grid;
+
+    grid-template-columns: minmax(0, 800px);
+    justify-content: center;
+    justify-items: center;
+    align-items: center;
+}
+
+.pet-case {
+    padding: 10px;
+    margin: 5px;
+    background-color: #111;
+    border: 2px solid yellow;
+
+    display: grid;
+    grid-template-columns: 1fr 1fr 1fr;
+}
+
+#pet-shop {
+    border-color: red;
+}
+
+#pet-collection {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: center;
+}
+
+.pet-box {
+    border: 2px solid darkslategray;
+    background-color: #111;
+    margin: 5px;
+
+    display: flex;
+    justify-content: center;
+    align-items: center;
+
+    width: var(--pet-box-size);
+    height: var(--pet-box-size);
+}
+
+:not(.pet-show-icon) > .pet-icon {
+    display: none;
+}
+
+:not(.pet-show-question) > .pet-question {
+    display: none;
+}
+
+.pet-show-shaded {
+    opacity: 50%;
+}
+
+.pet-show-icon:not(.pet-show-shaded):hover {
+    cursor: pointer;
+}
+
+.pet-none {
+    border-color: darkslategray;
+}
+
+.pet-common {
+    border-color: gray;
+}
+
+.pet-rare {
+    border-color: rgb(45, 131, 188);
+}
+
+.pet-rare.pet-show-icon:not(.pet-show-shaded) {
+    box-shadow: 0 0 10px rgb(45, 131, 188);
+}
+
+.pet-epic {
+    border-color: #A0A;
+}
+
+.pet-epic.pet-show-icon:not(.pet-show-shaded) {
+    box-shadow: 0 0 10px #A0A;
+}

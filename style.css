@@ -23,15 +23,14 @@ body, body * {
     align-items: center;
 }
 
-.off {
+.off, #overlay.off {
     display: none;
 }
 
 /* Grid Styles */
 
 #main-grid {
-    display: grid;
-    
+    margin: 5px;
 }
 
 #main-display {
