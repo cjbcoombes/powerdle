@@ -99,14 +99,18 @@ const makeRowData = (row, component) => {
         traits: {}
     }
 };
-gameState.interactions.rand.at = (k, m = 2**31) => {
-    let seed = Math.max(1, gameState.interactions.rand.seed - k);
+gameState.interactions.rand.at = (k, m = 0) => {
+    const mod = 2n**31n;
+    m = m > 0 ? BigInt(m) : mod;
+
+    // const arr = [];
+    let seed = gameState.interactions.rand.seed + BigInt(k);
     k = k % 100 + 15;
-    while (k > 0) {
-        seed = (1103515245 * seed + 12345) % (2**31);
+    while (k > 0 || seed < 8n) {
+        seed = (1103515245n * seed + 12345n) % mod;
         k--;
     }
-    return seed % m;
+    return Number((seed >> 2n) % m);
 };
 gameState.interactions.cellHidden = (cellorrow, col) => {
     if (col == undefined) {
@@ -304,11 +308,13 @@ const load = () => {
         gameState.stats = stats;
     }
 
+    const mkSeed = () => gameState.data.status.target.split("")
+        .map(l => BigInt(l.charCodeAt(0))).reduce((acc, elem) => acc * 3217n + elem) % 10293817n;
+
     if (data && data.version == expectedDataVersion && data.status.day == todayId) {
         gameState.data = data;
 
-        gameState.interactions.rand.seed = gameState.data.status.target.split("")
-            .map(l => l.charCodeAt(0)).reduce((acc, elem) => acc * 3217 + elem) % 10293821;
+        gameState.interactions.rand.seed = mkSeed();
 
         constructGrid(true);
         traits.all(t => t.onReload(gameState));
@@ -320,8 +326,7 @@ const load = () => {
         gameState.data.version = expectedDataVersion;
         gameState.stats.version = expectedStatsVersion;
 
-        gameState.interactions.rand.seed = gameState.data.status.target.split("")
-            .map(l => l.charCodeAt(0)).reduce((acc, elem) => acc * 3217 + elem) % 10293821;
+        gameState.interactions.rand.seed = mkSeed();
 
         constructGrid(false);
         traits.all(t => t.onStart(gameState));
