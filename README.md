@@ -1,7 +1,7 @@
 # powerdle
 
 ### *The wordle, with every possible reward system.*
-### Play Here: [https://github.com/cjbcoombes/powerdle](https://github.com/cjbcoombes/powerdle)
+### Play Here: [https://cjbcoombes.github.io/powerdle/](https://cjbcoombes.github.io/powerdle/)
 
 ## What the heck?
 
