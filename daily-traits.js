@@ -79,18 +79,17 @@ class DailyGiftTrait extends Trait {
                 this.stg(state.interactions, "pets").buyPet(p);
                 return p;
             }
+        },
+        {
+            icon: "💸",
+            fill: state => docMake("img", [], null, img => {
+                img.style["width"] = img.style["height"] = "1.5em";
+                img.src = "https://upload.wikimedia.org/wikipedia/en/9/9a/Trollface_non-free.png";
+            }),
+            reward: state => {}
         }
     ]
 
-    /*
-    
-            let r = state.interactions.rand.at(9213 + i * 191, pets.length);
-            while (shopPets.includes(r)) {
-                r = (r + 1) % shopPets.length; 
-            }
-            shopPets.push(r);
-
-    */
     onStart(state) {
         const stg = super.onStart(state);
 
