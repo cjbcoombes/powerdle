@@ -256,6 +256,7 @@ class StandardPointsTrait extends Trait {
         for (let i = 0; i < WORDLE_COLS; i++) {
             if (state.interactions.cellHidden(row[i])) {
                 if (comboSize != 0) endCombo();
+                continue;
             }
 
             if (row[i].status.correctness == GUESS_TYPES.GREEN) {
