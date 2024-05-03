@@ -85,7 +85,8 @@ class BannedLetterTrait extends Trait {
     onReloadCell(state, cell) {
         const stg = super.onReloadCell(state, cell);
         if (stg.blocked) {
-            cell.component.style["background-color"] = "var(--wordle-red)";
+            cell.component.style.setProperty("--bg-color", "var(--wordle-red)");
+            cell.component.classList.add("reveal-now");
         }
     }
 
@@ -99,7 +100,8 @@ class BannedLetterTrait extends Trait {
 
                 cell.status.judgeHidden = true;
                 this.stg(cell).blocked = true;
-                cell.component.style["background-color"] = "var(--wordle-red)";
+                cell.component.style.setProperty("--bg-color", "var(--wordle-red)");
+                cell.component.classList.add("reveal-now");
             }
             state.interactions.popups.addToRow(makeTextPopup("BANNED! -500", "var(--wordle-red)"));
             this.stg(state.data, "points").delta -= 500;

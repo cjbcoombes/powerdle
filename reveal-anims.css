@@ -1,6 +1,16 @@
+@keyframes reveal-now-anim {
+    0% {background-color: var(--wordle-none);}
+    100% {background-color: var(--bg-color);}
+}
+
+.reveal-now {
+    animation-name: reveal-now-anim;
+    animation-timing-function: ease-out;
+    animation-duration: 400ms;
+    animation-fill-mode: both;
+}
+
 @keyframes reveal-fade-anim {
-    /* 0% {background-color: var(--wordle-none);}
-    100% {background-color: var(--bg-color);} */
     0% {
         background-color: var(--wordle-none);
     }
