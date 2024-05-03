@@ -342,8 +342,6 @@ class StandardPointsTrait extends Trait {
         const filled = Math.floor(len * stg.total / this.prestigeLevels[level]);
         str += `${"🟪".repeat(filled)}${"⬜".repeat(len - filled)}\n`;
 
-        str += "\n";
-
         return str;
     }
 }

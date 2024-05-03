@@ -178,7 +178,7 @@ const traits = {
         ],
         cell: ["correctness", "newgreen", "reusedgray", "currency", "bannedletter"],
         row: ["points", "infoscore", "bannedletter", "\n"],
-        after: ["\n", "currency", "points"]
+        after: ["\n", "currency", "\n", "points"]
     },
     all: f => traits.normalList.forEach(f),
     allLetters: f => traits.letterList.forEach(f)
