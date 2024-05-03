@@ -1,6 +1,7 @@
 # powerdle
 
 ### *The wordle, with every possible reward system.*
+### Play Here: [https://github.com/cjbcoombes/powerdle](https://github.com/cjbcoombes/powerdle)
 
 ## What the heck?
 
@@ -33,6 +34,10 @@ Prestige Level:🍈
 ```
 
 ## Features
+### v2.1, 5/3/24
+#### Gameplay
+ - **Sick Animations.** That's right. The animations are so cool. See them by guessing a word!
+
 ### v2.0, 5/2/24
 #### Code
  - Pretty much everything was rewritten since this has gotten bigger than expected.
