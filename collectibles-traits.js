@@ -150,7 +150,7 @@ class PetCollectionTrait extends Trait {
 
     */
 
-    makePetBox(pet, ex = []) {
+    static makePetBox(pet, ex = []) {
         return docMake("div", ["pet-box", ...ex], null, box => {
             if (pet) {
                 if (pet.tier == PET_TIERS.COMMON) {
@@ -187,13 +187,13 @@ class PetCollectionTrait extends Trait {
 
         for (let i = 0; i < this.DISPLAY_COUNT; i++) {
             docId(`pet-display-${i}`).innerHTML = "";
-            docId(`pet-display-${i}`).appendChild(this.makePetBox());
+            docId(`pet-display-${i}`).appendChild(PetCollectionTrait.makePetBox());
         }
 
         const container = docId("pet-collection");
         for (let i = 0; i < pets.length; i++) {
             const pet = pets[i];
-            const box = this.makePetBox(pet);
+            const box = PetCollectionTrait.makePetBox(pet);
             box.id = `pet-box-${i}`;
             box.addEventListener("click", e => {
                 this.selectPet(state, pet.id);
@@ -214,12 +214,12 @@ class PetCollectionTrait extends Trait {
         for (let i = 0; i < this.SHOP_COUNT; i++) {
             let r = state.interactions.rand.at(9213 + i * 191, pets.length);
             while (shopPets.includes(r)) {
-                r = (r + 1) % shopPets.length; 
+                r = (r + 1) % pets.length; 
             }
             shopPets.push(r);
 
             
-            const box = this.makePetBox(pets[r], ["pet-show-icon"]);
+            const box = PetCollectionTrait.makePetBox(pets[r], ["pet-show-icon"]);
             
             docId(`pet-shop-${i}`).innerHTML = "";
             docId(`pet-shop-${i}`).appendChild(box);
@@ -293,7 +293,7 @@ class PetCollectionTrait extends Trait {
 
         if (oldStatus > 1) {
             docId(`pet-display-${oldStatus - 2}`).innerHTML = "";
-            docId(`pet-display-${oldStatus - 2}`).appendChild(this.makePetBox());
+            docId(`pet-display-${oldStatus - 2}`).appendChild(PetCollectionTrait.makePetBox());
         }
         stg.pets[id] = status;
 
@@ -314,7 +314,7 @@ class PetCollectionTrait extends Trait {
             }
 
             docId(`pet-display-${status - 2}`).innerHTML = "";
-            const newbox = this.makePetBox(pets[id], ["pet-show-icon"]);
+            const newbox = PetCollectionTrait.makePetBox(pets[id], ["pet-show-icon"]);
             newbox.addEventListener("click", e => {
                 this.setPetStatus(state, id, 1);
                 state.interactions.save();
@@ -339,6 +339,9 @@ class PetCollectionTrait extends Trait {
 
     onReload(state) {
         const stg = super.onReload(state);
+        const ints = this.stg(state.interactions);
+        ints.hasPet = id => stg.pets[id] > 0;
+        ints.buyPet = id => this.buyPet(state, id); 
 
         const shopElem = docId("pet-shop");
         shopElem.style["grid-template-columns"] = `repeat(${this.SHOP_COUNT}, 1fr)`;
