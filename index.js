@@ -209,6 +209,7 @@ const constructGrid = (hasPrev) => {
             docMake("div", ["wordle-cell", "full-text", "letter-text"], mainDisplay, cell => {
                 cell.style["grid-row"] = (i + 2);
                 cell.style["grid-column"] = (j + 2);
+                cell.style.setProperty("--cell-col", j);
                 cellRow.push(cell);
                 if (hasPrev) {
                     row[j].component = cell;
@@ -488,7 +489,7 @@ const keyEvent = key => {
                     cell.status.correctness = cellJudge.correctness;
                 }
 
-                if (gameState.turn >= WORDLE_ROWS - 1 || judge.allCorrect) {
+                if (status.turn >= WORDLE_ROWS - 1 || judge.allCorrect) {
                     status.gameOver = true;
                     status.won = judge.allCorrect;
                 }

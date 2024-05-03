@@ -74,6 +74,14 @@ class Trait {
 
 class CorrectnessColoringTrait extends Trait {
     name = "correctness"
+    anims = [
+        "reveal-flip",
+        "reveal-slide",
+        "reveal-fade",
+        "reveal-spin",
+        "reveal-shift",
+        "reveal-center"
+    ]
 
     onStartCell(state, cell) {
         const stg = super.onStartCell(state, cell);
@@ -90,12 +98,14 @@ class CorrectnessColoringTrait extends Trait {
     onRevealCell(state, cell, judge) {
         if (!state.interactions.cellHidden(cell)) {
             if (cell.status.correctness == GUESS_TYPES.GREEN) {
-                cell.component.style["background-color"] = "var(--wordle-green)";
+                cell.component.style.setProperty("--bg-color", "var(--wordle-green)");
             } else if (cell.status.correctness == GUESS_TYPES.YELLOW) {
-                cell.component.style["background-color"] = "var(--wordle-yellow)";
+                cell.component.style.setProperty("--bg-color", "var(--wordle-yellow)");
             } else if (cell.status.correctness == GUESS_TYPES.GRAY) {
-                cell.component.style["background-color"] = "var(--wordle-gray)";
+                cell.component.style.setProperty("--bg-color", "var(--wordle-gray)");
             }
+            cell.component.style["animation-delay"] = `${200 * cell.col}ms`;
+            cell.component.classList.add(this.anims[cell.row % this.anims.length]);
         }
     }
 

@@ -53,9 +53,9 @@ class CurrencyTrait extends Trait {
             cell, 
             docMake("div", ["currency-popup"], null, e => {
                 e.innerText = t;
-                e.style["animation-delay"] = `${100 * cell.col}ms`;
+                e.style["animation-delay"] = `${100 * cell.col + 1600}ms`;
             }), 
-            2400
+            4000
         );
 
         if (cell.status.correctness == GUESS_TYPES.GRAY && stg.gears > 0) {
