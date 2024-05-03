@@ -5,26 +5,30 @@ class Trait {
         return obj.traits[trait ? trait : this.name];
     }
 
-    stat(obj, trait) {
-        return obj.stats[trait ? trait : this.name];
-    }
-
     onReload(state) {
-        if (state.traits[this.name] == undefined) {
-            state.traits[this.name] = {};
+        if (state.data.traits[this.name] == undefined) {
+            state.data.traits[this.name] = {};
         }
-        if (state.stats[this.name] == undefined) {
-            state.stats[this.name] = {};
+        if (state.stats.traits[this.name] == undefined) {
+            state.stats.traits[this.name] = {};
         }
-        return this.stg(state);
+        if (state.interactions.traits[this.name] == undefined) {
+            state.interactions.traits[this.name] = {};
+        }
+        if (state.components.traits[this.name] == undefined) {
+            state.components.traits[this.name] = {};
+        }
+        return this.stg(state.data);
     }
 
     onStart(state) {
-        state.traits[this.name] = {};
-        if (state.stats[this.name] == undefined) {
-            state.stats[this.name] = {};
+        state.data.traits[this.name] = {};
+        state.interactions.traits[this.name] = {};
+        state.components.traits[this.name] = {};
+        if (state.stats.traits[this.name] == undefined) {
+            state.stats.traits[this.name] = {};
         }
-        return this.stg(state);
+        return this.stg(state.data);
     }
 
     onReloadCell(state, cell) {
@@ -43,11 +47,11 @@ class Trait {
 
     }
 
-    onPreReveal(state, row, judge) {
+    onPreReveal(state, rowId, judge) {
 
     }
 
-    onReveal(state, row, judge) {
+    onReveal(state, rowId, judge) {
 
     }
 
@@ -56,147 +60,101 @@ class Trait {
     }
 
     onPreShare(state) {
-
-    }
-
-    onShare(state) {
-
     }
 
     onShareCell(state, cell) {
-
     }
 
     onShareRow(state, row) {
-
-    }
-}
-
-class TypedTrait extends Trait {
-    name = "typed"
-
-    // This one is special
-    onTypeCell(state, cell, letter) {
-        const stg = this.stg(cell);
-        stg.letterbox.innerText = letter.toUpperCase();
-        stg.letter = letter;
     }
 
-    onRevealCell(state, cell, judge) {
-        this.onTypeCell(state, cell, cell.judge.guess);
-    }
-
-    onStartCell(state, cell) {
-        const stg = super.onStartCell(state, cell);
-        stg.letter = "";
-
-        this.onReloadCell(state, cell);
-    }
-
-    onReloadCell(state, cell) {
-        const stg = super.onReloadCell(state, cell);
-
-        const letterbox = document.createElement("span");
-        letterbox.classList.add("center-text");
-        cell.element.appendChild(letterbox);
-
-        stg.letterbox = letterbox;
-        letterbox.innerText = stg.letter.toUpperCase();
+    onShare(state) {
     }
 }
 
 class CorrectnessColoringTrait extends Trait {
     name = "correctness"
-    greenComboPoints = [
-        0,
-        100,
-        400,
-        900,
-        1600,
-        2500
-    ]
-    yellowPoints = 50
-
-    onReveal(state, row, judge) {
-        const pointStg = this.stg(state, "points");
-
-        let comboSize = 0;
-        for (let i = 0; i < NUM_COLS; i++) {
-            if (row[i].judge.hidden) continue;
-
-            if (row[i].judge.correctness == GUESS_TYPES.GREEN) {
-                comboSize++;
-            } else if (comboSize != 0) {
-                const popup = makeFadingPopup(
-                    comboSize == 1 ? `GREEN +${this.greenComboPoints[comboSize]}` : 
-                    `COMBO x${comboSize} +${this.greenComboPoints[comboSize]}`,
-                    p => p.classList.add("color-green")
-                );
-                pointStg.delta += this.greenComboPoints[comboSize];
-                state.popups.addToRow(popup);
-                comboSize = 0;
-            }
-
-            if (row[i].judge.correctness == GUESS_TYPES.YELLOW) {
-                const popup = makeFadingPopup(`YELLOW +${this.yellowPoints}`, p => p.classList.add("color-yellow"));
-                pointStg.delta += this.yellowPoints;
-                state.popups.addToRow(popup);
-            }
-        }
-
-        if (comboSize != 0) {
-            const popup = makeFadingPopup(
-                comboSize == 1 ? `GREEN +${this.greenComboPoints[comboSize]}` : 
-                `COMBO x${comboSize} +${this.greenComboPoints[comboSize]}`,
-                p => p.classList.add("color-green")
-            );
-            pointStg.delta += this.greenComboPoints[comboSize];
-            state.popups.addToRow(popup);
-            comboSize = 0;
-        }
-    }
-
-    onRevealCell(state, cell, judge) {
-        if (!cell.judge.hidden) {
-            if (cell.judge.correctness == GUESS_TYPES.GREEN) {
-                cell.element.classList.add("reveal-green");
-            } else if (cell.judge.correctness == GUESS_TYPES.YELLOW) {
-                cell.element.classList.add("reveal-yellow");
-            } else if (cell.judge.correctness == GUESS_TYPES.GRAY) {
-                cell.element.classList.add("reveal-gray");
-            }
-        }
-        this.stg(cell).correctness = cell.judge.correctness;
-    }
 
     onStartCell(state, cell) {
         const stg = super.onStartCell(state, cell);
-        stg.correctness = GUESS_TYPES.NONE;
     }
 
     onReloadCell(state, cell) {
         const stg = super.onReloadCell(state, cell);
-        if (cell.judge.judged) {
+
+        if (cell.status.judged) {
             this.onRevealCell(state, cell, null);
+        }
+    }
+
+    onRevealCell(state, cell, judge) {
+        if (!state.interactions.cellHidden(cell)) {
+            if (cell.status.correctness == GUESS_TYPES.GREEN) {
+                cell.component.style["background-color"] = "var(--wordle-green)";
+            } else if (cell.status.correctness == GUESS_TYPES.YELLOW) {
+                cell.component.style["background-color"] = "var(--wordle-yellow)";
+            } else if (cell.status.correctness == GUESS_TYPES.GRAY) {
+                cell.component.style["background-color"] = "var(--wordle-gray)";
+            }
         }
     }
 
     onShareCell(state, cell) {
         // 🟥 🟧 🟨 🟩 🟦 🟪 🟫 ⬛ ⬜ ❔
-        if (cell.judge.hidden) {
-            cell.shareText = "❔";
-        } else if (cell.judge.judged) {
-            const correctness = cell.judge.correctness;
+        if (state.interactions.cellHidden(cell)) {
+            return "❔";
+        } else if (cell.status.judged) {
+            const correctness = cell.status.correctness;
             if (correctness == GUESS_TYPES.GREEN) {
-                cell.shareText = "🟩";
+                return "🟩";
             } else if (correctness == GUESS_TYPES.YELLOW) {
-                cell.shareText = "🟨";
+                return "🟨";
             } else if (correctness == GUESS_TYPES.GRAY) {
-                cell.shareText = "🟫";
+                return "🟫";
             } 
         } else {
-            cell.shareText = "⬛";
+            return "⬛";
         }
+    }
+}
+
+class StreakTrait extends Trait {
+    name = "streak"
+
+    onStart(state) {
+        const stg = super.onStart(state);
+        const stats = this.stg(state.stats);
+
+        stg.streak = withDef(stats.streak, 0);
+        stg.lastDayWon = withDef(stats.lastDayWon, -2);
+
+        if (stg.lastDayWon < state.day - 1) {
+            stg.streak = 0;
+        }
+
+        stg.startStreak = stg.streak;
+    }
+
+    onReveal(state, rowId, judge) {
+        const stg = this.stg(state.data);
+
+        if (judge.allCorrect) {
+            stg.streak++;
+            stg.lastDayWon = state.data.status.day;    
+        }
+    }
+
+    onSave(state) {
+        const stg = this.stg(state.data);
+        const stats = this.stg(state.stats);
+
+        stats.streak = stg.streak;
+        stats.lastDayWon = stg.lastDayWon;
+    }
+
+    onPreShare(state) {
+        const streak = this.stg(state.data).streak
+        return `Streak: ${streak} day${streak == 1 ? "" : "s"}\n`;
     }
 }
 
@@ -211,6 +169,15 @@ class StandardPointsTrait extends Trait {
         1000,
         500
     ]
+    greenComboPoints = [
+        0,
+        100,
+        400,
+        900,
+        1600,
+        2500
+    ]
+    yellowPoints = 50
     // [1,2,3,...].map(e => 1000 * Math.floor(5 * ((1 + e)**(1 + e / 8))))
     prestigeLevels = [
         5000,10000,19000,33000,55000,91000,150000,246000,405000,666000,1101000,1828000,3046000,5099000,Infinity
@@ -225,16 +192,19 @@ class StandardPointsTrait extends Trait {
     }
 
     showPrestige(stg, level, value, high1, high2 = high1) {
-        stg.levelElem.innerText = this.prestigeIcons[level];
-        stg.boundsElem.innerText = Math.round(value) + " / " + Math.round(high2);
+        docId("prestige-icon").innerText = this.prestigeIcons[level];
+        docId("prestige-bounds").innerText = Math.round(value) + " / " + Math.round(high2);
 
         const pct = 100 * Math.max(value, 0) / high1;
-        stg.barElem.style["width"] = pct + "%";
+        docId("prestige-bar-inner").style["width"] = pct + "%";
     }
 
     onStart(state) {
         const stg = super.onStart(state);
-        stg.saved = withDef(this.stat(state).saved, 0);
+        stg.saved = withDef(this.stg(state.stats).saved, 0);
+        stg.mult = this.stg(state.data, "streak").streak;
+        stg.mult = 1 + Math.log2(stg.mult + 1) / 4;
+        stg.mult = Math.round(stg.mult * 100) / 100;
         stg.total = stg.saved;
         stg.delta = 0;
         stg.dayDelta = 0;
@@ -246,84 +216,78 @@ class StandardPointsTrait extends Trait {
     onReload(state) {
         const stg = super.onReload(state);
 
-        const box = document.createElement("div");
-        const word = document.createElement("span");
-        word.innerText = "Total: ";
-        box.appendChild(word);
-        const value = document.createElement("span");
-        value.innerText = stg.dayDelta;
-        box.appendChild(value);
-
-        stg.element = value;
-        state.popups.infoBoxes.right.insertBefore(box, state.popups.infoBoxes.right.firstChild);
+        docId("points-total").innerText = signNum(stg.dayDelta);
+        docId("points-mult").innerText = `x${stg.mult.toFixed(2)}`;
 
         for (let i = 0; i < stg.rowDeltas.length; i++) {
-            const popup = document.createElement("span");
-            popup.innerText = signNum(stg.rowDeltas[i]);
-            popup.classList.add("fade-in");
-            state.popups.addToRow(popup, Infinity, i);
+            state.interactions.popups.sidebars[i].add(makeTextPopup(signNum(stg.rowDeltas[i]), "white", null, "fade-in"), Infinity);
         }
-
-        const prestigeBox = document.createElement("div");
-        prestigeBox.classList.add("prestige-box");
-
-        let prestigeText = document.createElement("div");
-        prestigeText.classList.add("prestige-text");
-        prestigeText.style["text-align"] = "left";
-        prestigeBox.appendChild(prestigeText);
-
-        let prestigeSubText = document.createElement("span");
-        prestigeSubText.innerText = "Prestige Level: ";
-        prestigeText.appendChild(prestigeSubText);
-
-        prestigeSubText = document.createElement("span");
-        prestigeText.appendChild(prestigeSubText);
-        prestigeSubText.classList.add("prestige-icon");
-        stg.levelElem = prestigeSubText;
-
-        prestigeText = document.createElement("div");
-        prestigeText.classList.add("prestige-text");
-        prestigeText.style["text-align"] = "right";
-        prestigeBox.appendChild(prestigeText);
-
-        prestigeSubText = document.createElement("span");
-        prestigeText.appendChild(prestigeSubText);
-        stg.boundsElem = prestigeSubText;
-        
-        const prestigeBar = document.createElement("div");
-        prestigeBar.classList.add("prestige-bar");
-        prestigeBox.appendChild(prestigeBar);
-
-        const prestigeBarInner = document.createElement("div");
-        prestigeBarInner.classList.add("prestige-bar-inner");
-        stg.barElem = prestigeBarInner;
-        prestigeBar.appendChild(prestigeBarInner);
 
         const level = this.calcLevel(stg.total);
         this.showPrestige(stg, level, stg.total, this.prestigeLevels[level]);
-
-        state.popups.infoBoxes.center.appendChild(prestigeBox);
     }
 
-    onReveal(state, row, judge) {
-        const stg = this.stg(state);
+    doCombos(state, row) {
+        const pointStg = this.stg(state.data);
 
-        if (judge.allCorrect) {
-            const popup = makeFadingPopup(`${makeOrdinal(state.turn + 1)} Guess ${signNum(this.moveBonusPoints[state.turn])}`);
-            stg.delta += this.moveBonusPoints[state.turn];
-            popup.classList.add("color-green");
-            state.popups.addToRow(popup);
+        let comboSize = 0;
+        const endCombo = () => {
+            state.interactions.popups.addToRow(
+                makeTextPopup(
+                    comboSize == 1 ? `GREEN +${this.greenComboPoints[comboSize]}` : 
+                        `COMBO x${comboSize} +${this.greenComboPoints[comboSize]}`, 
+                    "var(--wordle-green)"
+                )
+            );
+            pointStg.delta += this.greenComboPoints[comboSize];
+            comboSize = 0;
+        };
+
+        for (let i = 0; i < WORDLE_COLS; i++) {
+            if (state.interactions.cellHidden(row[i])) {
+                if (comboSize != 0) endCombo();
+            }
+
+            if (row[i].status.correctness == GUESS_TYPES.GREEN) {
+                comboSize++;
+            } else if (comboSize != 0) {
+                endCombo();
+            }
+
+            if (row[i].status.correctness == GUESS_TYPES.YELLOW) {
+                state.interactions.popups.addToRow(
+                    makeTextPopup(
+                        `YELLOW +${this.yellowPoints}`, 
+                        "var(--wordle-yellow)"
+                    )
+                );
+                pointStg.delta += this.yellowPoints;
+            }
         }
 
-        const popup = document.createElement("span");
-        popup.innerText = signNum(stg.delta);
-        popup.classList.add("fade-in");
-        state.popups.addToRow(popup, Infinity);
+        if (comboSize != 0) {
+            endCombo();
+        }
+    }
 
-        let drop1 = stg.delta;
-        stg.total += stg.delta;
-        stg.dayDelta += stg.delta;
-        stg.rowDeltas.push(stg.delta);
+    onReveal(state, rowId, judge) {
+        const stg = this.stg(state.data);
+        const turn = state.data.status.turn;
+
+        this.doCombos(state, state.data.cellRows[rowId]);
+
+        if (judge.allCorrect) {
+            state.interactions.popups.addToRow(
+                makeTextPopup(`${makeOrdinal(turn + 1)} Guess ${signNum(this.moveBonusPoints[turn])}`, "var(--wordle-green)"));
+            stg.delta += this.moveBonusPoints[turn];
+        }
+
+        state.interactions.popups.addToRow(makeTextPopup(signNum(stg.delta), "white", null, "fade-in"), Infinity);
+
+        let drop1 = Math.floor(stg.delta * stg.mult);
+        stg.total += drop1;
+        stg.dayDelta += drop1;
+        stg.rowDeltas.push(drop1);
         stg.delta = 0;
 
         const tgt = stg.total;
@@ -344,142 +308,42 @@ class StandardPointsTrait extends Trait {
                 currLevel++;
             }
 
-            if (drop1 <= 0 && currLevel >= tgtLevel && currVal >= this.prestigeLevels[currLevel]) {
+            if (drop1 <= 0 && currLevel >= tgtLevel && currVal >= tgt && upperVal >= this.prestigeLevels[currLevel]) {
                 clearInterval(this.intId);
             }
 
-            stg.element.innerText = stg.dayDelta - drop1;
+            docId("points-total").innerText = signNum(stg.dayDelta - drop1);
             this.showPrestige(stg, currLevel, currVal, upperVal, this.prestigeLevels[currLevel]);
         }, 10);
     }
 
     onSave(state) {
-        this.stat(state).saved = this.stg(state).total;
+        this.stg(state.stats).saved = this.stg(state.data).total;
     }
 
     onShareRow(state, row) {
-        const stg = this.stg(state);
+        const stg = this.stg(state.data);
 
         if (row < stg.rowDeltas.length && stg.rowDeltas[row] != 0) {
-            state.shareText += signNum(stg.rowDeltas[row]) + " ";
+            return signNum(stg.rowDeltas[row]) + " ";
         }
     }
 
     onShare(state) {
         // ▰▱
         // 🟪⬜
-        const stg = this.stg(state);
-
-        state.shareText += `Total Points: ${signNum(stg.dayDelta)}\n\n`;
+        const stg = this.stg(state.data);
+        let str = `Total Points: ${signNum(stg.dayDelta)}\n\n`;
 
         const level = this.calcLevel(stg.total);
-        state.shareText += `Prestige Level:${this.prestigeIcons[level]}\n${stg.total}/${this.prestigeLevels[level]}\n`;
+        str += `Prestige Level:${this.prestigeIcons[level]}\n${stg.total}/${this.prestigeLevels[level]}\n`;
 
         const len = 8;
         const filled = Math.floor(len * stg.total / this.prestigeLevels[level]);
-        state.shareText += `${"🟪".repeat(filled)}${"⬜".repeat(len - filled)}\n`;
+        str += `${"🟪".repeat(filled)}${"⬜".repeat(len - filled)}\n`;
 
-        state.shareText += "\n";
-    }
-}
+        str += "\n";
 
-// --------------
-
-class LetterTrait {
-    name = "default/l"
-
-    stg(obj, trait) {
-        return obj.traits[trait ? trait : this.name];
-    }
-
-    stat(obj, trait) {
-        return obj.stats[trait ? trait : this.name];
-    }
-
-    onType(state) {
-
-    }
-
-    onTypeCell(state, cell) {
-
-    }
-
-    onReload(state) {
-        if (state.traits[this.name] == undefined) {
-            state.traits[this.name] = {};
-        }
-        if (state.stats[this.name] == undefined) {
-            state.stats[this.name] = {};
-        }
-        return this.stg(state);
-    }
-
-    onStart(state) {
-        state.traits[this.name] = {};
-        if (state.stats[this.name] == undefined) {
-            state.stats[this.name] = {};
-        }
-        return state.traits[this.name];
-    }
-
-    onReloadCell(state, cell) {
-        if (cell.traits[this.name] == undefined) {
-            cell.traits[this.name] = {};
-        }
-        return this.stg(cell);
-    }
-
-    onStartCell(state, cell) {
-        cell.traits[this.name] = {};
-        return cell.traits[this.name];
-    }
-
-    onReveal(state, row, judge) {
-
-    }
-
-    onSave(state) {
-
-    }
-}
-
-class CorrectnessColoringLetterTrait extends LetterTrait {
-    name = "correctness/l"
-
-    onStartCell(state, cell) {
-        const stg = super.onStartCell(state, cell);
-        stg.correctness = GUESS_TYPES.NONE;
-    }
-
-    onReload(state) {
-        const stg = super.onReload(state);
-        for (let i = 0; i < NUM_ROWS; i++) {
-            if (state.rowData[i][0].judge.judged) {
-                this.onReveal(state, state.rowData[i], null);
-            }
-        }
-    }
-
-    onReveal(state, row, judge) {
-        for (let i = 0; i < NUM_COLS; i++) {
-            const cell = state.letterData[row[i].judge.guess];
-            const stg = this.stg(cell);
-            
-            if (!row[i].judge.hidden) {
-                if (stg.correctness >= row[i].judge.correctness) {
-                    stg.correctness = row[i].judge.correctness;
-                    cell.element.classList.remove("reveal-green");
-                    cell.element.classList.remove("reveal-yellow");
-                    cell.element.classList.remove("reveal-gray");
-                    if (row[i].judge.correctness == GUESS_TYPES.GREEN) {
-                        cell.element.classList.add("reveal-green");
-                    } else if (row[i].judge.correctness == GUESS_TYPES.YELLOW) {
-                        cell.element.classList.add("reveal-yellow");
-                    } else if (row[i].judge.correctness == GUESS_TYPES.GRAY) {
-                        cell.element.classList.add("reveal-gray");
-                    }
-                }
-            }
-        }
+        return str;
     }
 }

@@ -1,9 +1,9 @@
+/* General Styles */
+
 body {
-    background-color: black;
-    font-family: "Anton", sans-serif;
-    font-weight: 400;
-    font-style: normal;
-    color: white;
+    background-color: var(--page-background);
+    color: var(--page-text);
+    font-size: 14px;
 }
 
 body, body * {
@@ -12,10 +12,113 @@ body, body * {
     margin: 0;
 }
 
-#display, #letters, #apps {
-    table-layout: fixed;
-    width: 100%;
+.debug-outline {
+    border: 1px solid white;
+    min-height: 30px;
 }
+
+.full-text {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+
+.off, #overlay.off {
+    display: none;
+}
+
+/* Grid Styles */
+
+#main-grid {
+    margin: 5px;
+}
+
+#main-display {
+    display: grid;
+    grid-template-columns: 1fr repeat(var(--wordle-cols), var(--wordle-cell-size)) 1fr;
+    grid-template-rows: auto repeat(var(--wordle-rows), var(--wordle-cell-size)) auto;
+}
+
+#main-top {
+    grid-row: 1;
+    grid-column: 2 / calc(var(--wordle-cols) + 2);
+}
+
+#main-topright {
+    grid-row: 1;
+    grid-column: calc(var(--wordle-cols) + 2);
+}
+
+#main-bottom {
+    grid-row: calc(var(--wordle-rows) + 2);
+    grid-column: 2 / calc(var(--wordle-cols) + 2);
+}
+
+#main-bottomright {
+    grid-row: calc(var(--wordle-rows) + 2);
+    grid-column: calc(var(--wordle-cols) + 2);
+}
+
+@media (max-width: 600px) {
+    #main-display {
+        grid-template-columns: 10px repeat(var(--wordle-cols), var(--wordle-cell-size)) 1fr;
+    }
+}
+
+#letter-display {
+    margin-top: 10px;
+    display: grid;
+
+    justify-content: center;
+    align-items: center;
+    justify-items: center;
+
+    grid-template-columns: repeat(20, minmax(0, calc(var(--wordle-letter-width) / 2)));
+    grid-template-rows: repeat(3, var(--wordle-letter-height));
+}
+
+/* Wordle Styles */
+
+.wordle-cell {
+    width: 90%;
+    height: 90%;
+    justify-self: center;
+    align-self: center;
+    background-color: var(--wordle-none);
+    border: 2px solid var(--wordle-outline);
+}
+
+.wordle-row {
+    display: none;
+}
+
+.wordle-sidebar {
+    justify-self: left;
+    align-self: center;
+    margin-left: 10px;
+
+    display: flex;
+    align-items: center;
+}
+
+.wordle-cell-popup {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+
+.letter-cell {
+    width: 90%;
+    height: 90%;
+    background-color: var(--wordle-none);
+    border: 2px solid var(--wordle-outline);
+}
+
+.letter-cell:hover {
+    cursor: pointer;
+}
+
+/* Overlay and Share */
 
 #overlay {
     position: fixed;
@@ -23,105 +126,32 @@ body, body * {
     left: 0;
     width: 100%;
     height: 100%;
-    z-index: 2000;
+    z-index: 1;
+
+    display: flex;
+    justify-content: center;
+    align-items: center;
 }
+
+#overlay
 
 #overlay.shaded {
     background-color: #AAA8;
 }
 
-.center-text {
-    float: left;
-    position: relative;
-    top: 50%;
-    left: 50%;
-    transform: translateX(-50%) translateY(-50%);
-}
-
-.center-box {
-    position: absolute;
-    top: 50%;
-    left: 50%;
-    transform: translateX(-50%) translateY(-50%);
-}
-
-.cell-container {
-    text-align: center;
-    /* border: 2px solid white; */
-}
-
-.display {
-    width: min(320px, 70vw);
-}
-
-.cell {
-    display: inline-block;
-    width: min(50px, 10vw);
-    height: min(50px, 10vw);
-    margin: min(5px, 1vw);
-    background-color: black;
-    border: 2px solid gray;
-    color: white;
-    font-size: min(30px, 6vw);
-    position: relative;
-}
-
-.cell-popup-box {
-    position: absolute;
-    top: 50%;
-    left: 50%;
-    transform: translateX(-50%) translateY(-50%);
-    width: 100%;
-    height: 100%;
-    z-index: 1000;
-}
-
-.row-popup-box-container {
-    /* border: 2px solid white; */
-    width: calc(49% - min(160px, 35vw));
-}
-
-@media (max-width: 700px) {
-    .row-popup-box-container.left {
-        width: 0;
-    }
-    .row-popup-box-container.right {
-        width: calc(99% - min(320px, 70vw));
-    }
-}
-
-.scale-font {
-    font-size: min(23px, 5vw);
-}
-
-.letter {
-    display: inline-block;
-    width: min(50px, 9%);
-    height: 60px;
-    margin: 5px min(5px, 0.4%);
-    padding: 0;
-    background-color: black;
-    color: white;
-    border: 2px solid gray;
-    font-size: 20px;
-}
-
-.share-box {
+.overlay-box {
     background-color: black;
     border: 1px solid white;
     border-radius: 20px;
     padding: 20px;
     white-space: nowrap;
     text-align: center;
-    font-size: 0.8em;
 }
 
-.share-box pre {
+.share-pre {
     color: white;
-    font-family: "Source Code Pro", monospace;
     text-align: left;
 }
-
 
 .share-button {
     padding: 10px;
@@ -130,53 +160,13 @@ body, body * {
     border-radius: 10px;
     margin: 10px;
     color: white;
-    font-family: "Anton", sans-serif;
-    font-style: normal;
 }
 
 .share-button:hover {
     cursor: pointer;
 }
 
-.letter.wide {
-    width: min(100px, 14%);
-}
-
-.letter:hover {
-    cursor: pointer;
-}
-
-.reveal-green {
-    background-color: green;
-}
-
-.color-green {
-    color: green;
-}
-
-.reveal-yellow {
-    background-color: #bb9e00;
-}
-
-.color-yellow {
-    color: #bb9e00;
-}
-
-.reveal-gray {
-    background-color: #192424;
-}
-
-.color-gray {
-    color: #192424;
-}
-
-.reveal-red {
-    background-color: red;
-}
-
-.color-red {
-    color: red;
-}
+/* Animations */
 
 @keyframes fade-in-out-anim {
     0% {opacity: 0%;}
@@ -188,20 +178,6 @@ body, body * {
 @keyframes fade-in-anim {
     0% {opacity: 0%;}
     100% {opacity: 100%;}
-}
-
-@keyframes grow-in-out-anim {
-    0% {
-        opacity: 0%; 
-        transform: translate(-50%, -50%) scale(0%);
-    }
-    35% {
-        opacity: 100%; 
-    }
-    100% {
-        opacity: 0%; 
-        transform: translate(-50%, -50%) scale(200%);
-    }
 }
 
 .fade-in-out {
@@ -216,8 +192,39 @@ body, body * {
     animation-fill-mode: both;
 }
 
-.grow-in-out {
-    animation-name: grow-in-out-anim;
-    animation-duration: 2s;
-    animation-fill-mode: both;
+/* Light Rays */
+
+@keyframes light-ray-anim {
+    0% {
+        transform: rotate(0deg);
+    }
+    100% {
+        transform: rotate(360deg);
+    }
+}
+
+.light-ray-container {
+    position: absolute;
+    width: 0;
+    height: 0;
+    left: 50%;
+    top: 50%;
+}
+
+.light-ray {
+    animation-name: light-ray-anim;
+    animation-iteration-count: infinite;
+    animation-timing-function: linear;
+    transform-origin: 0 0;
+    position: absolute;
+    top: 0;
+    left: 0;
+    fill: url(#Light-Gradient);
+    margin: 0;
+    padding: 0;
+    z-index: -1;
+}
+
+.light-ray svg {
+    display: block;
 }

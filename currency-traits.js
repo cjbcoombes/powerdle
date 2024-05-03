@@ -5,9 +5,11 @@ class CurrencyTrait extends Trait {
 
     onStart(state) {
         const stg = super.onStart(state);
-        stg.savedGems = withDef(this.stat(state).savedGems, 0);
-        stg.savedCoins = withDef(this.stat(state).savedCoins, 0);
-        stg.savedGears = withDef(this.stat(state).savedGears, 0);
+        const stat = this.stg(state.stats);
+
+        stg.savedGems = withDef(stat.savedGems, 0);
+        stg.savedCoins = withDef(stat.savedCoins, 0);
+        stg.savedGears = withDef(stat.savedGears, 0);
         stg.totalGems = stg.savedGems;
         stg.totalCoins = stg.savedCoins;
         stg.totalGears = stg.savedGears;
@@ -20,103 +22,58 @@ class CurrencyTrait extends Trait {
 
     onReload(state) {
         const stg = super.onReload(state);
-        stg.updateQuantities = this.updateQuantities.bind(this);
-        
-        const box = document.createElement("span");
-        box.classList.add("currency-box");
+        const ints = this.stg(state.interactions);
+        ints.updateQuantities = (gems, coins, gears) => this.updateQuantities(state, gems, coins, gears);
+        ints.hasQuantities = (gems, coins, gears) => stg.totalGems >= gems && stg.totalCoins >= coins && stg.totalGears >= gears;
 
-        let word = document.createElement("span");
-        word.classList.add("currency-img");
-        word.innerText = "💎";
-        box.appendChild(word);
-
-        let value = document.createElement("span");
-        value.classList.add("currency-text");
-        value.innerText = stg.totalGems;
-        box.appendChild(value);
-        stg.gemsElem = value;
-
-        word = document.createElement("span");
-        word.classList.add("currency-img");
-        word.classList.add("space");
-        word.innerText = "🪙";
-        box.appendChild(word);
-
-        value = document.createElement("span");
-        value.classList.add("currency-text");
-        value.innerText = stg.totalCoins;
-        box.appendChild(value);
-        stg.coinsElem = value;
-
-        word = document.createElement("span");
-        word.classList.add("currency-img");
-        word.classList.add("space");
-        word.innerText = "⚙️";
-        box.appendChild(word);
-
-        value = document.createElement("span");
-        value.classList.add("currency-text");
-        value.innerText = stg.totalGears;
-        box.appendChild(value);
-        stg.gearsElem = value;
-
-        const container = document.createElement("div");
-        container.appendChild(box);
-        state.popups.infoBoxes.center.appendChild(container);
+        docId("currency-gems").innerText = stg.totalGems;
+        docId("currency-coins").innerText = stg.totalCoins;
+        docId("currency-gears").innerText = stg.totalGears;
     }
 
     onStartCell(state, cell) {
         const stg = super.onStartCell(state, cell);
         const off = cell.row * 5 + cell.col * 17;
 
-        const gems = Math.max(0, state.randAt(1823 + off, 9) - 8 + 1);
-        const coins = Math.max(0, state.randAt(8130 + off, 14) - 7 + 1);
-        const gears = Math.max(0, state.randAt(7422 + off, 20) - 10 + 1);
+        const gems = Math.max(0, state.interactions.rand.at(1823 + off, 9) - 8 + 1);
+        const coins = Math.max(0, state.interactions.rand.at(8130 + off, 14) - 7 + 1);
+        const gears = Math.max(0, state.interactions.rand.at(7422 + off, 20) - 10 + 1);
         stg.gems = gems;
         stg.coins = coins;
         stg.gears = gears;
     }
 
     onRevealCell(state, cell, judge) {
-        if (cell.judge.hidden) return;
+        if (state.interactions.cellHidden(cell)) return;
 
         const stg = this.stg(cell);
-        const stateStg = this.stg(state);
+        const stateStg = this.stg(state.data);
 
-        if (cell.judge.correctness == GUESS_TYPES.GRAY && stg.gears > 0) {
+        const makePopup = t => gameState.interactions.popups.addToCell(
+            cell, 
+            docMake("div", ["currency-popup"], null, e => {
+                e.innerText = t;
+                e.style["animation-delay"] = `${100 * cell.col}ms`;
+            }), 
+            2400
+        );
+
+        if (cell.status.correctness == GUESS_TYPES.GRAY && stg.gears > 0) {
             stateStg.deltaGears += stg.gears;
-            cell.popups.add(
-                makeGrowingPopup("⚙️", p => {
-                    p.style["animation-delay"] = (100 * cell.col) + "ms";
-                    p.classList.add("currency-popup");
-                }),
-                2400
-            );
+            makePopup("⚙️");
         }
-        if (cell.judge.correctness == GUESS_TYPES.YELLOW && stg.coins > 0) {
+        if (cell.status.correctness == GUESS_TYPES.YELLOW && stg.coins > 0) {
             stateStg.deltaCoins += stg.coins;
-            cell.popups.add(
-                makeGrowingPopup("🪙", p => {
-                    p.style["animation-delay"] = (100 * cell.col) + "ms";
-                    p.classList.add("currency-popup");
-                }),
-                2400
-            );
+            makePopup("🪙");
         }
-        if (cell.judge.correctness == GUESS_TYPES.GREEN && stg.gems > 0) {
+        if (cell.status.correctness == GUESS_TYPES.GREEN && stg.gems > 0) {
             stateStg.deltaGems += stg.gems;
-            cell.popups.add(
-                makeGrowingPopup("💎", p => {
-                    p.style["animation-delay"] = (100 * cell.col) + "ms";
-                    p.classList.add("currency-popup");
-                }),
-                2400
-            );
+            makePopup("💎");
         }
     }
 
     updateQuantities(state, gems, coins, gears) {
-        const stg = this.stg(state);
+        const stg = this.stg(state.data);
 
         let dropGems = gems;
         let diffGems = Math.max(1, Math.floor(dropGems / 60));
@@ -134,22 +91,22 @@ class CurrencyTrait extends Trait {
         this.intId = setInterval(() => {
             if (dropGems > 0) dropGems -= diffGems;
             if (dropGems <= 0) dropGems = 0;
-            stg.gemsElem.innerText = stg.totalGems - dropGems;
+            docId("currency-gems").innerText = stg.totalGems - dropGems;
             
             if (dropCoins > 0) dropCoins -= diffCoins;
             if (dropCoins <= 0) dropCoins = 0;
-            stg.coinsElem.innerText = stg.totalCoins - dropCoins;
+            docId("currency-coins").innerText = stg.totalCoins - dropCoins;
             
             if (dropGears > 0) dropGears -= diffGears;
             if (dropGears <= 0) dropGears = 0;
-            stg.gearsElem.innerText = stg.totalGears - dropGears;
+            docId("currency-gears").innerText = stg.totalGears - dropGears;
 
             if (dropGems <= 0 && dropCoins <= 0 && dropGears <= 0) clearInterval(this.intId);
         }, 100);
     }
 
     onReveal(state, row, judge) {
-        const stg = this.stg(state);
+        const stg = this.stg(state.data);
 
         this.updateQuantities(state, stg.deltaGems, stg.deltaCoins, stg.deltaGears);
         stg.deltaGems = 0;
@@ -158,33 +115,33 @@ class CurrencyTrait extends Trait {
     }
 
     onSave(state) {
-        const stat = this.stat(state);
-        const stg = this.stg(state);
+        const stat = this.stg(state.stats);
+        const stg = this.stg(state.data);
         stat.savedGems = stg.totalGems;
         stat.savedCoins = stg.totalCoins;
         stat.savedGears = stg.totalGears;
     }
 
     onShareCell(state, cell) {
-        if (cell.judge.hidden) return;
+        if (state.interactions.cellHidden(cell)) return;
         const stg = this.stg(cell);
 
-        if (cell.judge.correctness == GUESS_TYPES.GRAY && stg.gears > 0) {
-            cell.shareText = "⚙️";
+        if (cell.status.correctness == GUESS_TYPES.GRAY && stg.gears > 0) {
+            return "⚙️";
         }
-        if (cell.judge.correctness == GUESS_TYPES.YELLOW && stg.coins > 0) {
-            cell.shareText = "🪙";
+        if (cell.status.correctness == GUESS_TYPES.YELLOW && stg.coins > 0) {
+            return "🪙";
         }
-        if (cell.judge.correctness == GUESS_TYPES.GREEN && stg.gems > 0) {
-            cell.shareText = "💎";
+        if (cell.status.correctness == GUESS_TYPES.GREEN && stg.gems > 0) {
+            return "💎";
         }
     }
 
     onShare(state) {
-        const stg = this.stg(state);
+        const stg = this.stg(state.data);
 
-        state.shareText += `💎${stg.totalGems}(+${stg.totalGems - stg.savedGems})  `;
-        state.shareText += `🪙${stg.totalCoins}(+${stg.totalCoins - stg.savedCoins})  `;
-        state.shareText += `⚙️${stg.totalGears}(+${stg.totalGears - stg.savedGears})`;
+        return `💎${stg.totalGems}(${signNum(stg.totalGems - stg.savedGems)})  `
+         + `🪙${stg.totalCoins}(${signNum(stg.totalCoins - stg.savedCoins)})  `
+         + `⚙️${stg.totalGears}(${signNum(stg.totalGears - stg.savedGears)})\n`;
     }
 }

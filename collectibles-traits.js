@@ -1,9 +1,9 @@
 // https://emojipedia.org/nature
-const animalSorter = (a, b) => {
+const petSorter = (a, b) => {
     if (a.tier != b.tier) return b.tier - a.tier;
     return a.name.localeCompare(b.name);
 };
-const animals = 
+const pets = 
 `🐌 Snail 1
 🦋 Butterfly 2
 🐜 Ant 1
@@ -123,234 +123,255 @@ const animals =
     str = str.split(" ");
     return {icon: str[0], name: str.slice(1, str.length - 1).join(" "), tier: str[str.length - 1] - 1};
 })
-animals.sort(animalSorter);
-animals.forEach((o, i) => o.id = i);
+pets.sort(petSorter);
+pets.forEach((o, i) => o.id = i);
 
-const ANIMAL_TIERS = {
+const PET_TIERS = {
     COMMON: 0,
     RARE: 1,
     EPIC: 2
 };
-const animalTiers = [[], [], []];
-animals.forEach(a => {
-    animalTiers[a.tier].push(a);
+const petTiers = [[], [], []];
+pets.forEach(a => {
+    petTiers[a.tier].push(a);
 });
 
 class PetCollectionTrait extends Trait {
     name = "pets"
+    DISPLAY_COUNT = 3
+    SHOP_COUNT = 4
 
-    makePetBox(pet, shaded = false) {
-        const box = document.createElement("div");
-        box.classList.add("pet-box");
-        if (shaded) {
-            box.classList.add("pet-shaded");
-        }
+    /*
+    0 = not owned
+    1 = owned, not equipped
+    2 = first slot
+    3 = second slot
+    4 = third slot
 
-        const icon = document.createElement("span");
-        icon.classList.add("center-text", "pet-icon");
-        icon.innerText = pet.icon;
+    */
 
-        box.appendChild(icon);
+    static makePetBox(pet, ex = []) {
+        return docMake("div", ["pet-box", ...ex], null, box => {
+            if (pet) {
+                if (pet.tier == PET_TIERS.COMMON) {
+                    box.classList.add("pet-common");
+                } else if (pet.tier == PET_TIERS.RARE) {
+                    box.classList.add("pet-rare");
+                } else if (pet.tier == PET_TIERS.EPIC) {
+                    box.classList.add("pet-epic");
+                }
+            } else {
+                box.classList.add("pet-none");
+            }
 
-        if (pet.tier == ANIMAL_TIERS.COMMON) {
-            box.classList.add("pet-common");
-        } else if (pet.tier == ANIMAL_TIERS.RARE) {
-            box.classList.add("pet-rare");
-        } else if (pet.tier == ANIMAL_TIERS.EPIC) {
-            box.classList.add("pet-epic");
-        }
+            docMake("div", ["pet-icon"], box, icon => {
+                icon.innerText = pet ? pet.icon : "X";
+            });
 
-        return box;
-    }
+            docMake("div", ["pet-question"], box, icon => {
+                icon.innerText = "❔";
+            });
+        });
 
-    makeEmptyPetBox(question = false) {
-        const box = document.createElement("div");
-        if (question) {
-            const icon = document.createElement("span");
-            icon.classList.add("center-text", "pet-icon");
-            icon.innerText = "❔";
-            box.appendChild(icon);
-            box.classList.add("pet-shaded");
-        }
-        box.classList.add("pet-box", "pet-none");
+        /*
 
-        return box;
+        Content: none, ? / pet,      pet
+        Border:  gray, color-shaded, color-bright
+        Shadow:  none, none,         color-bright
+
+        */
     }
 
     reloadCollection(state) {
-        const stg = this.stg(state);
+        const stg = this.stg(state.data);
 
-        const boxbox = stg.displayBox;
-        boxbox.innerHTML = "";
-        const box = stg.collectionBox;
-        box.innerHTML = "";
+        for (let i = 0; i < this.DISPLAY_COUNT; i++) {
+            docId(`pet-display-${i}`).innerHTML = "";
+            docId(`pet-display-${i}`).appendChild(PetCollectionTrait.makePetBox());
+        }
 
-        const MAX_DISPLAY = 3;
-        let selected = stg.pets.filter(p => p == 2).length;
+        const container = docId("pet-collection");
+        for (let i = 0; i < pets.length; i++) {
+            const pet = pets[i];
+            const box = PetCollectionTrait.makePetBox(pet);
+            box.id = `pet-box-${i}`;
+            box.addEventListener("click", e => {
+                this.selectPet(state, pet.id);
+                state.interactions.save();
+            });
+            container.appendChild(box);
+        }
 
-        for (let i = 0; i < animals.length; i++) {
-            const pet = animals[i];
-            const j = i;
+        for (let i = 0; i < pets.length; i++) {
+            this.setPetStatus(state, i, stg.pets[i]);
+        }
+    }
 
-            if (stg.pets[i] == 2) {
-                let petBox = this.makePetBox(pet);
-                petBox.addEventListener("click", () => {
-                    stg.pets[j] = 1;
-                    state.save();
-                    this.reloadCollection(state);
-                })
-                boxbox.appendChild(petBox);
+    reloadShop(state) {
+        const stg = this.stg(state.data);
 
-                petBox = this.makePetBox(pet, true);
-                box.appendChild(petBox);
-            } else if (stg.pets[i] == 1) {
-                const petBox = this.makePetBox(pet);
-                if (selected < MAX_DISPLAY) {
-                    petBox.addEventListener("click", () => {
-                        stg.pets[j] = 2;
-                        state.save();
-                        this.reloadCollection(state);
-                    });
+        const shopPets = [];
+        for (let i = 0; i < this.SHOP_COUNT; i++) {
+            let r = state.interactions.rand.at(9213 + i * 191, pets.length);
+            while (shopPets.includes(r)) {
+                r = (r + 1) % pets.length; 
+            }
+            shopPets.push(r);
+
+            
+            const box = PetCollectionTrait.makePetBox(pets[r], ["pet-show-icon"]);
+            
+            docId(`pet-shop-${i}`).innerHTML = "";
+            docId(`pet-shop-${i}`).appendChild(box);
+            
+            if (stg.pets[r] != 0) {
+                box.classList.add("pet-show-shaded");
+                docId(`pet-price-${i}`).innerText = "OWNED";
+                docId(`pet-price-${i}`).classList.add("owned");
+            } else if (pets[r].tier == PET_TIERS.COMMON) {
+                docId(`pet-price-${i}`).innerText = "⚙️20";
+                box.addEventListener("click", e => {
+                    const ints = this.stg(state.interactions, "currency");
+                    if (ints.hasQuantities(0, 0, 20)) {
+                        ints.updateQuantities(0, 0, -20);
+                        this.buyPet(state, r);
+                        state.interactions.save();
+                    }
+                });
+            } else if (pets[r].tier == PET_TIERS.RARE) {
+                docId(`pet-price-${i}`).innerText = "🪙20";
+                box.addEventListener("click", e => {
+                    const ints = this.stg(state.interactions, "currency");
+                    if (ints.hasQuantities(0, 20, 0)) {
+                        ints.updateQuantities(0, -20, 0);
+                        this.buyPet(state, r);
+                        state.interactions.save();
+                    }
+                });
+            } else if (pets[r].tier == PET_TIERS.EPIC) {
+                docId(`pet-price-${i}`).innerText = "💎20";
+                box.addEventListener("click", e => {
+                    const ints = this.stg(state.interactions, "currency");
+                    if (ints.hasQuantities(20, 0, 0)) {
+                        ints.updateQuantities(-20, 0, 0);
+                        this.buyPet(state, r);
+                        state.interactions.save();
+                    }
+                });
+            }
+        }
+    }
+
+    buyPet(state, id) {
+        const stg = this.stg(state.data);
+
+        if (stg.pets[id] != 0) return;
+
+        this.setPetStatus(state, id, 1);
+        this.reloadShop(state);
+    }
+
+    selectPet(state, id) {
+        const stg = this.stg(state.data);
+
+        if (stg.pets[id] != 1) return;
+
+        for (let i = 0; i < this.DISPLAY_COUNT; i++) {
+            if (stg.pets.some(p => p == i + 2)) continue;
+
+            this.setPetStatus(state, id, i + 2);
+
+            return;
+        }
+        
+    }
+
+    setPetStatus(state, id, status) {
+        const stg = this.stg(state.data);
+        const box = docId(`pet-box-${id}`);
+        const oldStatus = stg.pets[id];
+
+        if (oldStatus > 1) {
+            docId(`pet-display-${oldStatus - 2}`).innerHTML = "";
+            docId(`pet-display-${oldStatus - 2}`).appendChild(PetCollectionTrait.makePetBox());
+        }
+        stg.pets[id] = status;
+
+        if (status == 0) {
+            box.classList.remove("pet-show-icon");
+            box.classList.add("pet-show-question", "pet-show-shaded");
+        } else if (status == 1) {
+            box.classList.remove("pet-show-question", "pet-show-shaded");
+            box.classList.add("pet-show-icon");
+        } else {
+            box.classList.remove("pet-show-question");
+            box.classList.add("pet-show-icon", "pet-show-shaded");
+
+            for (let i = 0; i < stg.pets.length; i++) {
+                if (i != id && stg.pets[i] == status) {
+                    this.setPetStatus(state, i, 1);
                 }
-                box.appendChild(petBox);
-            } else {
-                box.appendChild(this.makeEmptyPetBox(true));
             }
 
-        }
-        for (let j = selected; j < MAX_DISPLAY; j++) {
-            boxbox.appendChild(this.makeEmptyPetBox());
+            docId(`pet-display-${status - 2}`).innerHTML = "";
+            const newbox = PetCollectionTrait.makePetBox(pets[id], ["pet-show-icon"]);
+            newbox.addEventListener("click", e => {
+                this.setPetStatus(state, id, 1);
+                state.interactions.save();
+            });
+            docId(`pet-display-${status - 2}`).appendChild(newbox);
         }
     }
 
     onStart(state) {
         const stg = super.onStart(state);
         
-        stg.pets = withDef(this.stat(state).pets, (a => {
+        stg.pets = withDef(this.stg(state.stats).pets, (a => {
             if (localStorage.getItem("powerdle-creator")) {
                 a[0] = 1;
             }
             a[97] = 1;
             return a;
-        })(animals.map(a => 0)));
+        })(pets.map(a => 0)));
 
         this.onReload(state);
     }
 
     onReload(state) {
         const stg = super.onReload(state);
+        const ints = this.stg(state.interactions);
+        ints.hasPet = id => stg.pets[id] > 0;
+        ints.buyPet = id => this.buyPet(state, id); 
 
-        const row = document.createElement("tr");
-        row.classList.add("scale-font");
-        state.appsTable.appendChild(row);
-
-        let box = document.createElement("div");
-        box.innerText = "Pet Shop";
-        box.classList.add("pet-text");
-        row.appendChild(box);
-
-        box = document.createElement("div");
-        box.classList.add("pet-text");
-        let boxbox = document.createElement("div");
-        boxbox.classList.add("pet-shop-box");
-        box.appendChild(boxbox);
-        row.appendChild(box);
-
-        const pets = [
-            state.randAt(9213, animals.length),
-            state.randAt(9644, animals.length),
-            state.randAt(2285, animals.length)
-        ];
-        while (pets[1] == pets[0]) pets[1] = (pets[1] + 1) % animals.length;
-        while (pets[2] == pets[0] || pets[2] == pets[1]) pets[2] = (pets[2] + 1) % animals.length;
-
-        const topBox = document.createElement("div");
-        const bottomBox = document.createElement("div");
-        for (let i = 0; i < pets.length; i++) {
-            const pet = animals[pets[i]];
-
-            topBox.appendChild(this.makePetBox(pet));
-            const button = document.createElement("div");
-            bottomBox.appendChild(button);
-            if (stg.pets[pets[i]] == 0) {
-                button.classList.add("pet-shop-button");
-                const inner1 = document.createElement("div");
-                const inner2 = document.createElement("div");
-                if (pet.tier == ANIMAL_TIERS.COMMON) {
-                    inner1.innerText = "⚙️";
-                    inner2.innerText = "20";
-                } else if (pet.tier == ANIMAL_TIERS.RARE) {
-                    inner1.innerText = "🪙";
-                    inner2.innerText = "20";
-                } else if (pet.tier == ANIMAL_TIERS.EPIC) {
-                    inner1.innerText = "💎";
-                    inner2.innerText = "20";
-                }
-                button.appendChild(inner1);
-                button.appendChild(inner2);
-                const j = i;
-                button.addEventListener("click", () => {
-                    const currStg = this.stg(state, "currency");
-                    if (pet.tier == ANIMAL_TIERS.COMMON) {
-                        if (currStg.totalGears < 20) return;
-                        currStg.updateQuantities(state, 0, 0, -20);
-                    } else if (pet.tier == ANIMAL_TIERS.RARE) {
-                        if (currStg.totalCoins < 20) return;
-                        currStg.updateQuantities(state, 0, -20, 0);
-                    } else if (pet.tier == ANIMAL_TIERS.EPIC) {
-                        if (currStg.totalGems < 20) return;
-                        currStg.updateQuantities(state, -20, 0, 0);
-                    }
-                    stg.pets[pets[j]] = 1;
-                    state.save();
-                    this.reloadCollection(state);
-
-                    button.innerHTML = "";
-                    button.classList.remove("pet-shop-button");
-                    button.classList.add("pet-shop-owned");
-                    const inner = document.createElement("div");
-                    inner.innerText = "OWNED";
-                    button.appendChild(inner);
-                });
-            } else {
-                button.classList.add("pet-shop-owned");
-                const inner = document.createElement("div");
-                inner.innerText = "OWNED";
-                button.appendChild(inner);
-            }
+        const shopElem = docId("pet-shop");
+        shopElem.style["grid-template-columns"] = `repeat(${this.SHOP_COUNT}, 1fr)`;
+        for (let i = 0; i < this.SHOP_COUNT; i++) {
+            docMake("div", [], shopElem, e => {
+                e.id = `pet-shop-${i}`;
+            });
+            docMake("div", ["pet-price"], shopElem, e => {
+                e.id = `pet-price-${i}`;
+            });
         }
-        boxbox.appendChild(topBox);
-        boxbox.appendChild(bottomBox);
 
-        // ----
+        this.reloadShop(state);
 
-        box = document.createElement("div");
-        box.innerText = "Pet Collection";
-        box.classList.add("pet-text");
-        row.appendChild(box);
-        
-        box = document.createElement("div");
-        box.classList.add("pet-text");
-        boxbox = document.createElement("div");
-        boxbox.classList.add("pet-display-box");
-        stg.displayBox = boxbox;
-        box.appendChild(boxbox);
-        row.appendChild(box);
-
-        box = document.createElement("div");
-        box.classList.add("pet-text");
-        stg.collectionBox = box;
-        row.appendChild(box);
+        const displayElem = docId("pet-display");
+        displayElem.style["grid-template-columns"] = `repeat(${this.DISPLAY_COUNT}, 1fr)`;
+        for (let i = 0; i < this.DISPLAY_COUNT; i++) {
+            docMake("div", [], displayElem, e => e.id = `pet-display-${i}`);
+        }
 
         this.reloadCollection(state);
     }
 
     onSave(state) {
-        this.stat(state).pets = this.stg(state).pets.slice();
+        this.stg(state.stats).pets = this.stg(state.data).pets.slice();
     }
 
     onPreShare(state) {
-        const stg = this.stg(state);
+        const stg = this.stg(state.data);
+
         if (!stg.pets.includes(2)) return;
         /*
 
@@ -364,20 +385,24 @@ class PetCollectionTrait extends Trait {
         🖤 Black Heart
         🤍 White Heart
         */
-        state.shareText += "Pets: ";
-        for (let i = 0; i < animals.length; i++) {
-            if (stg.pets[i] != 2) continue;
+        let str = "Pets: ";
+        let strs = [];
+        for (let i = 0; i < pets.length; i++) {
+            if (stg.pets[i] < 2) continue;
 
-            const pet = animals[i];
+            const pet = pets[i];
             
-            if (pet.tier == ANIMAL_TIERS.COMMON) {
-                state.shareText += `🤎${pet.icon}🤎`;
-            } else if (pet.tier == ANIMAL_TIERS.RARE) {
-                state.shareText += `💙${pet.icon}💙`;
-            } else if (pet.tier == ANIMAL_TIERS.EPIC) {
-                state.shareText += `💜${pet.icon}💜`;
+            if (pet.tier == PET_TIERS.COMMON) {
+                strs[stg.pets[i]] = `🤎${pet.icon}🤎`;
+            } else if (pet.tier == PET_TIERS.RARE) {
+                strs[stg.pets[i]] = `💙${pet.icon}💙`;
+            } else if (pet.tier == PET_TIERS.EPIC) {
+                strs[stg.pets[i]] = `💜${pet.icon}💜`;
             }
         }
-        state.shareText += "\n\n";
+        strs.forEach(s => s ? (str += s) : null);
+        str += "\n";
+
+        return str;
     }
 }

@@ -10,11 +10,12 @@ That is the intended reaction. Some games are simple and fun at their core, and 
 It's all meaningless if you can't share with your friends, right?  
 Here's an example:
 ```
-Powerdle #3 6/6
+Powerdle #7 6/6
+Streak: 1 day
 
-Pets: 💜👽💜🤎🦔🤎
+Pets: 💜👽💜🤎🦔🤎🤎🐖🤎
 
-Optimal Comparison: 95%
+Optimal Comparison: 29%
 🟫🟫🟫🪙🪙 +100 
 🟫🪙🟫⚙️🟫 +50 
 ⚙️💀💀🟫⚙️ 🥱 Boring... 
@@ -22,16 +23,22 @@ Optimal Comparison: 95%
 ⚙️⚙️💀⚙️💀 🥱 Boring... 
 ✅💎✅✅✅ +3000 🤜😵 Knockout!
 
-Total Points: +2650
+💎1(+1)  🪙10(+10)  ⚙️34(+34)
+
+Total Points: +2850
 
 Prestige Level:🍈
 2650/5000
 🟪🟪🟪🟪⬜⬜⬜⬜
-
-💎1(+1)  🪙10(+10)  ⚙️34(+34)
 ```
 
 ## Features
+### v2.0, 5/2/24
+#### Code
+ - Pretty much everything was rewritten since this has gotten bigger than expected.
+#### Gameplay
+ - **Daily Gift.** There is a daily gift, which comes on a 5 day cycle. A streak is needed to advance, when the streak is lost the gift cycle resets. Later gifts are better.
+
 ### v1.0, 4/28/24
 #### Gameplay
  - **Playable Wordle.** If you don't know what that is, it's a cool game Josh Wardle made for his girlfriend. It got bought by the NY Times and you can play it [here](https://www.nytimes.com/games/wordle/index.html).
@@ -109,7 +116,7 @@ Powerdle www.powerdle.com 9/8 ⚡
 Optimal Comparison: 21.77%
 📴🟨🟥♿🚫
 🕉️🆚📵🟨💹
-⚠️⚠️☠️ ⚠️⚠️ Critical Error 📛 
+⚠️⚠️☠️⚠️⚠️ Critical Error 📛 
 🟩🟧🟨❎🔠
 ✅🈺🚸✅🕞
 ✅🛐🈸✅🕟 
