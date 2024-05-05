@@ -2,8 +2,8 @@ body {
     --page-background: black;
     --page-text: white;
 
-    --wordle-none: black;
-    --wordle-gray: #192424;
+    --wordle-none: #151515;
+    --wordle-gray: #3d3d3d;
     --wordle-yellow: #bb9e00;;
     --wordle-green: green;
     --wordle-red: red;

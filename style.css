@@ -86,7 +86,7 @@ body, body * {
     align-self: center;
     --bg-color: var(--wordle-none);
     background-color: var(--wordle-none);
-    border: 2px solid var(--wordle-outline);
+    border: 1px solid var(--wordle-outline);
 }
 
 .wordle-row {
@@ -112,7 +112,8 @@ body, body * {
     width: 90%;
     height: 90%;
     background-color: var(--wordle-none);
-    border: 2px solid var(--wordle-outline);
+    border: 1px solid var(--wordle-outline);
+    border-radius: 2px;
 }
 
 .letter-cell:hover {
@@ -132,13 +133,12 @@ body, body * {
     display: flex;
     justify-content: center;
     align-items: center;
+    background-color: #AAA0;
 }
 
-#overlay
-
-#overlay.shaded {
+/* #overlay.shaded {
     background-color: #AAA8;
-}
+} */
 
 .overlay-box {
     background-color: black;
