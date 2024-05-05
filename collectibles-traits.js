@@ -5,9 +5,9 @@ const petSorter = (a, b) => {
 };
 const pets = 
 `🐌 Snail 1
-🦋 Butterfly 2
+🦋 Butterfly 1
 🐜 Ant 1
-🐝 Bee 2
+🐝 Bee 1
 🪲 Beetle 1
 🐞 Ladybug 1
 🦗 Cricket 1
@@ -18,25 +18,25 @@ const pets =
 🪰 Fly 1
 🪱 Worm 1
 🦠 Microbe 3
-🐸 Frog 2
+🐸 Frog 1
 🐊 Crocodile 2
 🐢 Turtle 2
 🦎 Lizard 1
 🐍 Snake 2
 🐉 Dragon 3
-🦕 Sauropod 3
+🦕 Sauropod 2
 🦖 T-Rex 3
 🐋 Whale 2
 🐬 Dolphin 3
-🦭 Seal 2
+🦭 Seal 1
 🐟 Fish 1
-🐠 Tropical Fish 2
+🐠 Tropical Fish 1
 🐡 Blowfish 2
 🦈 Shark 3
 🐙 Octopus 2
 🪸 Coral 1
 🪼 Jellyfish 1
-🦀 Crab 2
+🦀 Crab 1
 🦞 Lobster 2
 🦐 Shrimp 1
 🦑 Squid 2
@@ -53,24 +53,24 @@ const pets =
 🦢 Swan 2
 🦉 Owl 2
 🦤 Dodo 3
-🦩 Flamingo 2
+🦩 Flamingo 1
 🦚 Peacock 3
-🦜 Parrot 2
+🦜 Parrot 1
 🐦‍⬛ Blackbird 1
 🪿 Goose 1
 🐒 Monkey 2
-🦍 Gorilla 3
+🦍 Gorilla 2
 🦧 Orangutan 2
 🐕 Dog 1
 🐩 Poodle 1
 🐺 Wolf 3
 🦊 Fox 2
-🦝 Raccoon 2
+🦝 Raccoon 1
 🐈 Cat 1
 🐈‍⬛ Black Cat 2
 🦁 Lion 3
-🐅 Tiger 3
-🐆 Leopard 3
+🐅 Tiger 2
+🐆 Leopard 2
 🫎 Moose 3
 🫏 Donkey 1
 🐎 Horse 2
@@ -79,7 +79,7 @@ const pets =
 🦌 Deer 1
 🦬 Bison 2
 🐂 Ox 2
-🐃 Water Buffalo 2
+🐃 Water Buffalo 1
 🐄 Cow 1
 🐖 Pig 1
 🐗 Boar 2
@@ -89,7 +89,7 @@ const pets =
 🐪 One-Hump Camel 2
 🐫 Two-Hump Camel 2
 🦙 Llama 3
-🦒 Giraffe 2
+🦒 Giraffe 1
 🐘 Elephant 2
 🦣 Mammoth 3
 🦏 Rhino 2
@@ -102,20 +102,20 @@ const pets =
 🦫 Beaver 1
 🦔 Hedgehog 1
 🦇 Bat 1
-🐻 Bear 2
-🐻‍❄️ Polar Bear 3
+🐻 Bear 1
+🐻‍❄️ Polar Bear 2
 🐨 Koala 2
 🐼 Panda 3
-🦥 Sloth 2
-🦦 Otter 2
+🦥 Sloth 1
+🦦 Otter 1
 🦨 Skunk 1
 🦘 Kangaroo 2
 🦡 Badger 1
 ⛄ Snowman 2
 😈 Devil 3
 👽 Alien 3
-👹 Red Ogre 2
-🧌 Troll 2
+👹 Red Ogre 1
+🧌 Troll 1
 💩 Poop 2
 👻 Ghost 2
 👾 Space Invader 3
@@ -330,7 +330,7 @@ class PetCollectionTrait extends Trait {
             if (localStorage.getItem("powerdle-creator")) {
                 a[0] = 1;
             }
-            a[97] = 1;
+            a[88] = 1;
             return a;
         })(pets.map(a => 0)));
 
