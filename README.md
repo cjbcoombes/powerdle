@@ -15,6 +15,7 @@ Powerdle #7 6/6
 Streak: 1 day
 
 Pets: 💜👽💜🤎🦔🤎🤎🐖🤎
+Achievements: +🪦|2️⃣
 
 Optimal Comparison: 29%
 🟫🟫🟫🪙🪙 +100 
@@ -34,6 +35,13 @@ Prestige Level:🍈
 ```
 
 ## Features
+### v2.2, 5/6/24
+#### Gameplay
+ - Pets were reranked, so their relative quantities match their supposed rarities.
+ - **Achievements.** They are listed, with descriptions, and can be gained by doing the described task.
+#### Sharing
+ - **Achievements.** Achieved achievements are shown as their emoji icons.
+
 ### v2.1, 5/3/24
 #### Gameplay
  - **Sick Animations.** That's right. The animations are so cool. See them by guessing a word!

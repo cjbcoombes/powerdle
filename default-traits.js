@@ -109,6 +109,16 @@ class CorrectnessColoringTrait extends Trait {
         }
     }
 
+    onReveal(state, rowId, judge) {
+        if (judge.allCorrect) {
+            this.stg(state.interactions, "achievements").give(`correct_${rowId + 1}`);
+        } else if (state.data.cellRows[rowId].every(c => c.status.correctness == GUESS_TYPES.GRAY)) {
+            this.stg(state.interactions, "achievements").give("all_gray");
+        } else if (state.data.cellRows[rowId].every(c => c.status.correctness == GUESS_TYPES.GRAY)) {
+            this.stg(state.interactions, "achievements").give("all_yellow");
+        }
+    }
+
     onShareCell(state, cell) {
         // 🟥 🟧 🟨 🟩 🟦 🟪 🟫 ⬛ ⬜ ❔
         if (state.interactions.cellHidden(cell)) {
@@ -150,7 +160,13 @@ class StreakTrait extends Trait {
 
         if (judge.allCorrect) {
             stg.streak++;
-            stg.lastDayWon = state.data.status.day;    
+            stg.lastDayWon = state.data.status.day;
+
+            if (stg.streak == 10) {
+                this.stg(state.interactions, "achievements").give("streak_10");
+            } else if (stg.streak == 100) {
+                this.stg(state.interactions, "achievements").give("streak_100");
+            }
         }
     }
 

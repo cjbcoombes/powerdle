@@ -54,8 +54,18 @@ body {
     font-size: 1.2em;
 }
 
+.header-bigger {
+    /* 2 * 1.2 */
+    font-size: 2.4em;
+}
+
 .smaller {
     font-size: 0.8em;
+}
+
+.header-smaller {
+    /* 2 * 0.8 */
+    font-size: 1.6em;
 }
 
 #main-display .letter-text {

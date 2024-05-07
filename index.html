@@ -16,7 +16,7 @@
   <link rel="stylesheet" href="reveal-anims.css">
 </head>
 
-<body>
+<body class="normal-text">
   <div id="overlay" class="off"></div>
   <div id="main-grid">
     <div id="main-display">
@@ -55,6 +55,20 @@
       </div>
     </div>
     <div id="letter-display"></div>
+    <div id="achievement-container" class="normal-text">
+      <div class="header-text">Achievements</div>
+      <div id="achievement-display">
+        <div id="achievement-display-box" class="achievement-box">
+          <div id="achievement-display-icon">O</div>
+        </div>
+        <div id="achievement-display-area">
+          <div id="achievement-display-name" class="header-text">NAME</div>
+          <div>STATUS: <span id="achievement-display-status"></span></div>
+          <div id="achievement-display-description">DESCRIPTION</div>
+        </div>
+      </div>
+      <div id="achievement-list"></div>
+    </div>
     <div id="pet-container" class="normal-text">
       <div class="header-text">Pet Shop</div>
       <div id="pet-shop" class="pet-case"></div>
@@ -70,6 +84,7 @@
   <script src="currency-traits.js"></script>
   <script src="collectibles-traits.js"></script>
   <script src="daily-traits.js"></script>
+  <script src="achievements-traits.js"></script>
   <script src="index.js"></script>
 </body>
 

@@ -332,7 +332,7 @@ class PetCollectionTrait extends Trait {
             }
             a[88] = 1;
             return a;
-        })(pets.map(a => 0)));
+        })(pets.map(a => 0))).slice();
 
         this.onReload(state);
     }

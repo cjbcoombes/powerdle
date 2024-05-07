@@ -75,6 +75,7 @@ class BannedLetterTrait extends Trait {
         }
 
         stg.banned = [ALPHABET[l]];
+        stg.isRisky = false;
     }
 
     onStartCell(state, cell) {
@@ -105,6 +106,16 @@ class BannedLetterTrait extends Trait {
             }
             state.interactions.popups.addToRow(makeTextPopup("BANNED! -500", "var(--wordle-red)"));
             this.stg(state.data, "points").delta -= 500;
+
+            if (rowId >= 3) {
+                stg.isRisky = true;
+            }
+        }
+    }
+
+    onReveal(state, rowId, judge) {
+        if (judge.allCorrect && this.stg(state.data).isRisky) {
+            this.stg(state.interactions, "achievements").give("risky");
         }
     }
 

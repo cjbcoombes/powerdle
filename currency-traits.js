@@ -78,14 +78,23 @@ class CurrencyTrait extends Trait {
         let dropGems = gems;
         let diffGems = Math.max(1, Math.floor(dropGems / 60));
         stg.totalGems += gems;
+        if (stg.totalGems >= 100) {
+            this.stg(state.interactions, "achievements").give("100_gems");
+        }
 
         let dropCoins = coins;
         let diffCoins = Math.max(1, Math.floor(dropCoins / 60));
         stg.totalCoins += coins;
+        if (stg.totalCoins >= 100) {
+            this.stg(state.interactions, "achievements").give("100_coins");
+        }
 
         let dropGears = gears;
         let diffGears = Math.max(1, Math.floor(dropGears / 30));
         stg.totalGears += gears;
+        if (stg.totalGears >= 100) {
+            this.stg(state.interactions, "achievements").give("100_gears");
+        }
 
         clearInterval(this.intId);
         this.intId = setInterval(() => {

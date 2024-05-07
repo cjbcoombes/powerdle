@@ -12,7 +12,7 @@ onLoad
 onReload
 */
 
-const expectedDataVersion = 10;
+const expectedDataVersion = 11;
 const expectedStatsVersion = 10;
 const gameState = {
     components: {
@@ -159,7 +159,8 @@ const traits = {
         new CurrencyTrait(),
         new PetCollectionTrait(),
         new DailyGiftTrait(),
-        new StandardPointsTrait()
+        new StandardPointsTrait(),
+        new AchievementsTrait()
     ],
     letterList: [
         new CorrectnessColoringLetterTrait(),
@@ -173,6 +174,7 @@ const traits = {
             "streak",
             "\n",
             "pets",
+            "achievements",
             "\n",
             "optimalcomparison"
         ],

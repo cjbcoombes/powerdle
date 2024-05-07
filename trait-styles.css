@@ -157,6 +157,7 @@
 /* Pets */
 #pet-container {
     display: grid;
+    margin: 10px;
 
     grid-template-columns: minmax(0, 800px);
     justify-content: center;
@@ -369,4 +370,85 @@
 .gift-icon {
     text-shadow: 0 0 0.2em #444;
     padding-bottom: 0.1em;
+}
+
+/* Achievements */
+
+#achievement-container {
+    display: grid;
+    margin: 10px;
+
+    grid-template-columns: minmax(0, 800px);
+    justify-content: center;
+    justify-items: center;
+    align-items: center;
+}
+
+#achievement-list {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: center;
+}
+
+.achievement-box {
+    border: 2px solid darkslategray;
+    background-color: #111;
+    margin: 5px;
+    font-size: 1.4em;
+
+    display: flex;
+    justify-content: center;
+    align-items: center;
+
+    width: 1.8em;
+    height: 1.8em;
+}
+
+.achievement-box:not(.display):hover {
+    cursor: pointer;
+}
+
+.achievement-box.achieved {
+    border-color: gold;
+    box-shadow: 0 0 10px gold;
+}
+
+.achievement-box:not(.achieved) {
+    opacity: 50%;
+}
+
+.achievement-box.overlay {
+    font-size: 4em;
+}
+
+#achievement-display {
+    display: grid;
+    grid-template-columns: auto minmax(0, 200px);
+    grid-template-rows: auto;
+
+    justify-items: left;
+    justify-content: center;
+    align-items: center;
+    align-content: start;
+}
+
+#achievement-display div {
+    margin: 4px 4px;
+}
+
+#achievement-display-box {
+    grid-column: 1;
+    grid-row: 1 / 4;
+    font-size: 3.5em;
+}
+
+#achievement-display-area {
+    grid-column: 2;
+    grid-row: 1;
+}
+
+#achievement-display-name {
+    grid-row: 1;
+    grid-column: 2;
+    font-size: 1.5em;
 }
