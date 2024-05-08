@@ -370,7 +370,8 @@ const judgeGuess = guess => {
     guess = guess.split("");
     const ans = gameState.data.status.target.split("");
     const out = {
-        cells: []
+        cells: [],
+        guess: guess.join("")
     };
 
     for (let i = 0; i < WORDLE_COLS; i++) {

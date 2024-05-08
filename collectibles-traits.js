@@ -267,6 +267,9 @@ class PetCollectionTrait extends Trait {
 
         if (stg.pets[id] != 0) return;
 
+        if (pets[id].name == "Alien") {
+            this.stg(state.interactions, "achievements").give("alien");
+        }
         this.setPetStatus(state, id, 1);
         this.reloadShop(state);
     }

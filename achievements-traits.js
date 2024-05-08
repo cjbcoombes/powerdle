@@ -82,6 +82,18 @@ const achievements = [
         icon: "🚀",
         name: "Blast Off!",
         desc: "Have a 100-day streak."
+    },
+    {
+        id: "palindrome",
+        icon: "🔁",
+        name: "Flip Flop",
+        desc: "Use a palindrome as your first word."
+    },
+    {
+        id: "alien",
+        icon: "👽",
+        name: "Extraterrestrial",
+        desc: "Get the Alien pet."
     }
 ];
 const achievementsIndex = {};
@@ -199,7 +211,13 @@ class AchievementsTrait extends Trait {
 
     onReveal(state, rowId, judge) {
         const stg = this.stg(state.data);
+        const ints = this.stg(state.interactions);
+
+        if (rowId == 0 && judge.guess == judge.guess.split("").reverse().join("")) {
+            ints.give("palindrome");
+        }
         
+
         stg.queue.forEach(i => this.makeOverlay(state, i));
         stg.queue = [];
         stg.isRevealing = false;
