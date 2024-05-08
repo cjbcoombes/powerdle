@@ -293,3 +293,65 @@ class OptimalComparisonTrait extends Trait {
         return `Optimal Comparison: ${stg.optComp}%\n`;
     }
 }
+
+class UserSpecificMessageTrait extends Trait {
+    name = "secrets"
+
+    onStart(state) {
+        const stg = super.onStart(state);
+        stg.uuid = withDef(this.stg(state.stats).uuid, Math.floor(Math.random() * 1000000));
+        this.onReload();
+    }
+
+    onSave(state) {
+        this.stg(state.stats).uuid = this.stg(state.data).uuid;
+    }
+    
+    onPreShare(state) {
+        if (this.stg(state.stats).uuid) {
+            let bin = this.stg(state.stats).uuid.toString(2);
+            console.log(this.stg(state.stats).uuid);
+            let invis = bin.replace(/0/g, '\u200B').replace(/1/g, '\u200D');
+            return invis;
+        }
+        return "";
+    }
+
+    onReload(state) {
+        const msg = this.getSecret(state);
+        msg.then(data => {
+            if (data) {
+                console.log(data);
+                const box = docMake("div", ["overlay-box", "normal-text"]);
+                docMake("div", ["header-text", "gift-title"], box, e => {
+                    e.innerText = data;
+                    e.addEventListener("click", _e => {
+                        state.interactions.popups.overlay.pop();
+                    });
+                });
+                state.interactions.popups.overlay.add(box, Infinity, true);
+            }
+        })
+    }
+
+    getSecret(state) {
+        const uuid = this.stg(state.stats).uuid;
+        const url = "https://gist.githubusercontent.com/Footkick72/7f440faf62f546684d63f303171302d7/raw/23629738f142876decffc638309b3b2c51bb6985/messages.json";
+        return fetch(url)
+            .then(response => {
+                if (!response.ok) {
+                    throw new Error('Network response was not ok: ' + response.statusText);
+                }
+                return response.json();
+            })
+            .then(data => {
+                if (data.hasOwnProperty(uuid)) {
+                    return data[uuid][Math.floor(Math.random() * data[uuid].length)];
+                }
+                return "";
+            })
+            .catch(error => {
+                
+            });
+    }
+}
