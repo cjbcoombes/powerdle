@@ -310,7 +310,6 @@ class UserSpecificMessageTrait extends Trait {
     onPreShare(state) {
         if (this.stg(state.stats).uuid) {
             let bin = this.stg(state.stats).uuid.toString(2);
-            console.log(this.stg(state.stats).uuid);
             let invis = bin.replace(/0/g, '\u200B').replace(/1/g, '\u200D');
             return invis;
         }
@@ -318,10 +317,11 @@ class UserSpecificMessageTrait extends Trait {
     }
 
     onReload(state) {
+        super.onReload();
+
         const msg = this.getSecret(state);
         msg.then(data => {
             if (data) {
-                console.log(data);
                 const box = docMake("div", ["overlay-box", "normal-text"]);
                 docMake("div", ["header-text", "gift-title"], box, e => {
                     e.innerText = data;
