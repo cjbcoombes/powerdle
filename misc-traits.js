@@ -323,7 +323,7 @@ class UserSpecificMessageTrait extends Trait {
         const msg = this.getSecret(state);
         msg.then(data => {
             if (data) {
-                const box = docMake("div", ["overlay-box", "normal-text"]);
+                const box = docMake("div", ["overlay-box", "normal-text", "fade-in"]);
                 docMake("div", ["header-text", "gift-title"], box, e => {
                     e.innerText = data;
                     e.addEventListener("click", _e => {
@@ -337,7 +337,7 @@ class UserSpecificMessageTrait extends Trait {
 
     getSecret(state) {
         const uuid = this.stg(state.stats).uuid;
-        const url = "https://gist.githubusercontent.com/Footkick72/7f440faf62f546684d63f303171302d7/raw/23629738f142876decffc638309b3b2c51bb6985/messages.json";
+        const url = "https://gist.githubusercontent.com/cjbcoombes/7b7b89b0bf111b350607a488f170b840/raw/f4fc1ab8d4c6b4e65ebb86c87b78b98d4d7c6d99/powerdle-messages.json";
         return fetch(url)
             .then(response => {
                 if (!response.ok) {

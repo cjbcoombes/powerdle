@@ -12,7 +12,7 @@ onLoad
 onReload
 */
 
-const expectedDataVersion = 11;
+const expectedDataVersion = 12;
 const expectedStatsVersion = 10;
 const gameState = {
     components: {
