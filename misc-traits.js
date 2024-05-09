@@ -300,7 +300,8 @@ class UserSpecificMessageTrait extends Trait {
     onStart(state) {
         const stg = super.onStart(state);
         stg.uuid = withDef(this.stg(state.stats).uuid, Math.floor(Math.random() * 1000000));
-        this.onReload();
+        
+        this.onReload(state);
     }
 
     onSave(state) {
@@ -317,7 +318,7 @@ class UserSpecificMessageTrait extends Trait {
     }
 
     onReload(state) {
-        super.onReload();
+        super.onReload(state);
 
         const msg = this.getSecret(state);
         msg.then(data => {
