@@ -150,6 +150,7 @@ const traits = {
         new ReusedGrayTrait(),
         new NewGreenTrait(),
         new OptimalComparisonTrait(),
+        new UserSpecificMessageTrait(),
 
         new CorrectnessColoringTrait(),
         new BannedLetterTrait(),
@@ -175,6 +176,7 @@ const traits = {
             "\n",
             "pets",
             "achievements",
+            "secrets",
             "\n",
             "optimalcomparison"
         ],
