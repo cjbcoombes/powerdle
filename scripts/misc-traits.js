@@ -337,7 +337,7 @@ class UserSpecificMessageTrait extends Trait {
 
     getSecret(state) {
         const uuid = this.stg(state.stats).uuid;
-        const url = "https://gist.githubusercontent.com/cjbcoombes/7b7b89b0bf111b350607a488f170b840/raw/f4fc1ab8d4c6b4e65ebb86c87b78b98d4d7c6d99/powerdle-messages.json";
+        const url = "https://gist.githubusercontent.com/cjbcoombes/7b7b89b0bf111b350607a488f170b840/raw";
         return fetch(url)
             .then(response => {
                 if (!response.ok) {
